@@ -41,6 +41,20 @@ export class TopicStorage {
     });
   }
 
+  static async updateTopic(topic: Topic): Promise<boolean> {
+    const db = await DatabaseManager.getDatabase();
+    const tx = db.transaction(TopicStorage.STORE_NAME, "readwrite");
+    const store = tx.objectStore(TopicStorage.STORE_NAME);
+    
+    topic.updatedAt = new Date().toISOString();
+    store.put(topic);
+    
+    return new Promise((resolve) => {
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  }
+
   static async updateTopicStatus(id: string, status: "Active" | "Archived"): Promise<boolean> {
     const db = await DatabaseManager.getDatabase();
     const tx = db.transaction(TopicStorage.STORE_NAME, "readwrite");

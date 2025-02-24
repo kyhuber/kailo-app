@@ -2,59 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
 /* Components Layer */
 @layer components {
   .btn {
-    @apply px-6 py-3 rounded font-semibold transition text-lg inline-block;
+    @apply px-6 py-3 rounded-lg font-medium transition text-lg inline-block;
   }
 
   .btn-primary {
-    @apply bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-400 dark:hover:bg-blue-500;
+    @apply bg-teal-600 text-white hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600;
   }
 
   .btn-secondary {
     @apply bg-gray-500 text-white hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700;
   }
+
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 
+           shadow-sm hover:shadow-md transition-shadow duration-300 p-5;
+  }
 }
 
 /* Global Styles */
 body {
-  @apply bg-gradient-to-b from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100;
-  font-family: 'Inter', sans-serif;
+  @apply bg-gradient-to-b from-stone-50 to-stone-100 dark:from-gray-900 dark:to-gray-800 
+         text-gray-800 dark:text-gray-100;
+  font-family: 'Outfit', sans-serif;
   transition: background-color 0.3s, color 0.3s;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
 }
 
 /* Header Styling */
 header {
-  @apply bg-blue-600 dark:bg-gray-800 text-white py-4 shadow-md;
+  @apply bg-teal-600 dark:bg-gray-800 text-white py-4 shadow-sm border-b border-teal-700 dark:border-gray-700;
 }
 
 /* Navbar Links */
 nav a {
-  @apply text-white hover:text-blue-200 dark:hover:text-gray-400 transition text-lg font-semibold;
+  @apply text-white hover:text-teal-100 dark:hover:text-teal-200 transition text-base font-medium;
 }
 
 /* Page Headings */
 h1 {
-  @apply text-4xl font-extrabold text-center mb-4;
+  @apply text-4xl font-bold mb-6 text-gray-800 dark:text-gray-50;
 }
 
 h2 {
-  @apply text-2xl font-semibold mb-2;
+  @apply text-2xl font-semibold mb-3 text-gray-800 dark:text-gray-50;
+}
+
+h3 {
+  @apply text-xl font-medium mb-2 text-gray-800 dark:text-gray-100;
 }
 
 p {
-  @apply text-lg text-gray-700 dark:text-gray-300 text-center mb-4;
+  @apply text-base text-gray-700 dark:text-gray-300 mb-4;
 }
 
 /* Input Fields */
-input, textarea {
-    @apply w-full px-4 py-2 rounded text-gray-900 dark:text-gray-100 
-           bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 
-           focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500;
-  }
-  
+input, textarea, select {
+  @apply w-full px-4 py-3 rounded-lg text-gray-800 dark:text-gray-100 
+         bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 
+         focus:ring-2 focus:ring-teal-400 dark:focus:ring-teal-500 focus:border-transparent
+         transition-colors duration-200;
+}
+
+/* Focus States */
+*:focus {
+  @apply outline-none;
+}
+
+/* Card Hover Effects */
+.card:hover {
+  @apply transform duration-300 ease-in-out;
+}
+
+/* Custom Scrollbar (Webkit Only) */
+::-webkit-scrollbar {
+  @apply w-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
 /* Footer */
 footer {
-  @apply bg-gray-800 text-white text-center py-4 mt-6 text-lg;
+  @apply bg-white dark:bg-gray-800 text-center py-5 text-sm text-gray-500 dark:text-gray-400
+         border-t border-gray-200 dark:border-gray-700 mt-10;
 }

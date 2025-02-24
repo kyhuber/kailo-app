@@ -1,3 +1,4 @@
+// src/app/friends/[id]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -748,4 +749,4 @@ export default function FriendDetailPage() {
       )}
     </div>
   );
-  }  
+}

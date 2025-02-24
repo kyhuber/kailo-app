@@ -58,4 +58,18 @@ export class NoteStorage {
       request.onerror = () => resolve(false);
     });
   }
+
+  static async updateNote(note: Note): Promise<boolean> {
+    const db = await DatabaseManager.getDatabase();
+    const tx = db.transaction(NoteStorage.STORE_NAME, "readwrite");
+    const store = tx.objectStore(NoteStorage.STORE_NAME);
+    
+    note.updatedAt = new Date().toISOString();
+    store.put(note);
+    
+    return new Promise((resolve) => {
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  }
 }
