@@ -8,12 +8,12 @@ import { DateStorage, ImportantDate } from '@/utils/dates_storage';
 
 // Color palette for friend cards
 const friendColors = [
-  'bg-teal-100',
-  'bg-amber-100',
-  'bg-violet-100',
-  'bg-emerald-100',
-  'bg-rose-100',
-  'bg-blue-100',
+  'bg-teal-100 dark:bg-teal-900',
+  'bg-amber-100 dark:bg-amber-900',
+  'bg-violet-100 dark:bg-violet-900',
+  'bg-emerald-100 dark:bg-emerald-900',
+  'bg-rose-100 dark:bg-rose-900',
+  'bg-blue-100 dark:bg-blue-900',
 ];
 
 const getRandomColor = () => {
@@ -150,13 +150,13 @@ export default function FriendsPage() {
                   {/* Friend Avatar with Initials */}
                   <div className="flex items-center mb-3 space-x-3">
                     <div className="w-12 h-12 rounded-full bg-white bg-opacity-60 dark:bg-gray-700 
-                               flex items-center justify-center text-lg font-bold shadow-sm">
+                              flex items-center justify-center text-lg font-bold shadow-sm text-gray-800 dark:text-white">
                       {friend.name.split(' ').map(name => name[0]).join('').toUpperCase().substring(0, 2)}
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{friend.name}</h2>
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{friend.name}</h2>
                       {friend.contactInfo && (
-                        <p className="text-gray-600 dark:text-gray-300 text-sm">{friend.contactInfo}</p>
+                        <p className="text-gray-800 dark:text-gray-100 text-sm">{friend.contactInfo}</p>
                       )}
                     </div>
                   </div>

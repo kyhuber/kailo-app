@@ -13,12 +13,12 @@ import { v4 as uuidv4 } from 'uuid';
 const getRandomColor = () => {
   // Better contrast color combinations (background + text color classes)
   const colorOptions = [
-    'bg-blue-200 dark:bg-blue-800',
-    'bg-emerald-200 dark:bg-emerald-800',
-    'bg-amber-200 dark:bg-amber-800',
-    'bg-rose-200 dark:bg-rose-800',
-    'bg-indigo-200 dark:bg-indigo-800',
-    'bg-teal-200 dark:bg-teal-800',
+    'bg-blue-100 dark:bg-blue-900',
+    'bg-emerald-100 dark:bg-emerald-900',
+    'bg-amber-100 dark:bg-amber-900',
+    'bg-rose-100 dark:bg-rose-900',
+    'bg-indigo-100 dark:bg-indigo-900',
+    'bg-teal-100 dark:bg-teal-900',
   ];
   return colorOptions[Math.floor(Math.random() * colorOptions.length)];
 };
@@ -185,12 +185,12 @@ export default function FriendDetailPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className={`p-6 rounded-lg shadow-md mb-6 ${friend.color || 'bg-blue-200 dark:bg-blue-800'}`}>
+      <div className={`p-6 rounded-lg shadow-md mb-6 ${friend.color || 'bg-blue-100 dark:bg-blue-900'}`}>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {friend.name}
         </h1>
         {friend.contactInfo && (
-          <p className="text-gray-700 dark:text-gray-200 mt-2">
+          <p className="text-gray-800 dark:text-gray-100 mt-2">
             {friend.contactInfo}
           </p>
         )}
@@ -199,7 +199,7 @@ export default function FriendDetailPage() {
             {friend.tags.map((tag) => (
               <span 
                 key={tag} 
-                className="bg-white bg-opacity-70 dark:bg-gray-700 px-3 py-1 rounded-full text-sm font-medium text-gray-800 dark:text-gray-200"
+                className="bg-white bg-opacity-70 dark:bg-gray-800 px-3 py-1 rounded-full text-sm font-medium text-gray-800 dark:text-gray-100"
               >
                 {tag}
               </span>
