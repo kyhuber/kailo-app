@@ -11,8 +11,16 @@ import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import { v4 as uuidv4 } from 'uuid';
 
 const getRandomColor = () => {
-  const colors = ['bg-blue-100', 'bg-green-100', 'bg-purple-100', 'bg-yellow-100', 'bg-pink-100', 'bg-indigo-100'];
-  return colors[Math.floor(Math.random() * colors.length)];
+  // Better contrast color combinations (background + text color classes)
+  const colorOptions = [
+    'bg-blue-200 dark:bg-blue-800',
+    'bg-emerald-200 dark:bg-emerald-800',
+    'bg-amber-200 dark:bg-amber-800',
+    'bg-rose-200 dark:bg-rose-800',
+    'bg-indigo-200 dark:bg-indigo-800',
+    'bg-teal-200 dark:bg-teal-800',
+  ];
+  return colorOptions[Math.floor(Math.random() * colorOptions.length)];
 };
 
 export default function FriendDetailPage() {
@@ -44,7 +52,8 @@ export default function FriendDetailPage() {
       try {
         const friendData = await FriendStorage.getFriend(friendId);
         if (friendData) {
-          if (!friendData.color) {
+          // If color exists but doesn't have text color class, update it
+          if (!friendData.color || !friendData.color.includes('text-')) {
             friendData.color = getRandomColor();
             await FriendStorage.updateFriend(friendData);
           }
@@ -176,18 +185,21 @@ export default function FriendDetailPage() {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Friend Header */}
-      <div className={`p-6 rounded-lg shadow-md mb-6 ${friend.color}`}>
-        <h1 className="text-2xl font-bold">{friend.name}</h1>
+      <div className={`p-6 rounded-lg shadow-md mb-6 ${friend.color || 'bg-blue-200 dark:bg-blue-800'}`}>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {friend.name}
+        </h1>
         {friend.contactInfo && (
-          <p className="text-gray-700 dark:text-gray-300 mt-2">{friend.contactInfo}</p>
+          <p className="text-gray-700 dark:text-gray-200 mt-2">
+            {friend.contactInfo}
+          </p>
         )}
         {friend.tags && friend.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             {friend.tags.map((tag) => (
               <span 
                 key={tag} 
-                className="bg-white bg-opacity-30 px-3 py-1 rounded-full text-sm"
+                className="bg-white bg-opacity-70 dark:bg-gray-700 px-3 py-1 rounded-full text-sm font-medium text-gray-800 dark:text-gray-200"
               >
                 {tag}
               </span>
@@ -326,9 +338,9 @@ export default function FriendDetailPage() {
       {/* Notes Tab */}
       {activeTab === 'notes' && (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Permanent Notes</h2>
+          <h2 className="text-xl font-semibold mb-4">General Notes</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Notes are permanent reference information about your friend that doesn&#39;t change frequently.
+            Notes are general reference information about friends that doesn&#39;t change frequently.
           </p>
           
           {/* Add Note Form */}

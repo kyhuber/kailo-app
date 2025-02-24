@@ -5,7 +5,7 @@ export interface Friend {
   name: string;
   contactInfo?: string;
   tags?: string[];
-  color?: string;
+  color?: string; // Now includes both background and text color classes
   createdAt: string;
   updatedAt: string;
 }
