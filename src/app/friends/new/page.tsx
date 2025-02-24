@@ -1,3 +1,4 @@
+// src/app/friends/new/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -18,6 +19,8 @@ export default function AddFriendPage() {
       name,
       contactInfo: contactInfo || undefined,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     await FriendStorage.addFriend(newFriend);
     router.push('/friends');

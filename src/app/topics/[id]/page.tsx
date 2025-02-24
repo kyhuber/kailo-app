@@ -1,17 +1,11 @@
+// src/app/topics/[id]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { TopicStorage } from '@/utils/topics_storage';
+import { Topic, TopicStorage } from '@/utils/topics_storage';
 
-interface Topic {
-  id: string;
-  friendId: string;
-  content: string;
-  type: "general" | "action";
-  status?: "Pending" | "Complete";
-  createdAt: string;
-}
+// Remove the local Topic interface definition since we're importing it
 
 export default function TopicDetailPage() {
   const router = useRouter();
