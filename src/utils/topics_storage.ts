@@ -1,59 +1,65 @@
 import { DatabaseManager } from "./database";
 
+export interface Topic {
+  id: string;
+  friendId: string;
+  content: string;
+  status: "Active" | "Archived";
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class TopicStorage {
   private static STORE_NAME = "topics";
 
-  static async addTopic(topic: { 
-    id: string; 
-    friendId: string; 
-    content: string; 
-    type: "general" | "action"; 
-    status?: "Pending" | "Complete"; 
-    createdAt: string; 
-  }) {
+  static async addTopic(topic: Topic): Promise<boolean> {
     const db = await DatabaseManager.getDatabase();
     const tx = db.transaction(TopicStorage.STORE_NAME, "readwrite");
     const store = tx.objectStore(TopicStorage.STORE_NAME);
     store.put(topic);
-    await new Promise((resolve) => (tx.oncomplete = () => resolve(true)));
-    return true;
+    return new Promise((resolve) => {
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
   }
 
-  static async getTopicsByFriend(friendId: string) {
+  static async getTopicsByFriend(friendId: string): Promise<Topic[]> {
     const db = await DatabaseManager.getDatabase();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(TopicStorage.STORE_NAME, "readonly");
       const store = tx.objectStore(TopicStorage.STORE_NAME);
       const request = store.getAll();
       request.onsuccess = () => {
-        const allTopics = request.result as { 
-          id: string; 
-          friendId: string; 
-          content: string; 
-          type: "general" | "action"; 
-          status?: "Pending" | "Complete"; 
-          createdAt: string; 
-        }[];
-        resolve(allTopics.filter(topic => topic.friendId === friendId));
+        const allTopics = request.result as Topic[];
+        if (friendId === "all") {
+          resolve(allTopics);
+        } else {
+          resolve(allTopics.filter(topic => topic.friendId === friendId));
+        }
       };
       request.onerror = () => reject(request.error);
     });
   }
 
-  static async updateTopicStatus(id: string, newStatus: "Pending" | "Complete") {
+  static async updateTopicStatus(id: string, status: "Active" | "Archived"): Promise<boolean> {
     const db = await DatabaseManager.getDatabase();
     const tx = db.transaction(TopicStorage.STORE_NAME, "readwrite");
     const store = tx.objectStore(TopicStorage.STORE_NAME);
     
     const request = store.get(id);
-    request.onsuccess = () => {
-      const topic = request.result;
-      if (topic && topic.type === "action") {
-        topic.status = newStatus;
-        store.put(topic);
-      }
-    };
-    await new Promise((resolve) => (tx.oncomplete = () => resolve(true)));
-    return true;
+    return new Promise((resolve) => {
+      request.onsuccess = () => {
+        const topic = request.result as Topic;
+        if (topic) {
+          topic.status = status;
+          topic.updatedAt = new Date().toISOString();
+          store.put(topic);
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      };
+      request.onerror = () => resolve(false);
+    });
   }
 }
