@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DateStorage } from '@/utils/dates_storage';
+import { TaskStorage } from '@/utils/tasks_storage';
 import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
+import { useEffect } from 'react';
 import Link from 'next/link';
 
-export default function NewDatePage() {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [type, setType] = useState<'One-time' | 'Recurring'>('One-time');
-  const [description, setDescription] = useState('');
+export default function NewTaskPage() {
+  const [content, setContent] = useState('');
+  const [priority, setPriority] = useState<'Normal' | 'High'>('Normal');
   const [friendId, setFriendId] = useState<string>('');
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,28 +38,27 @@ export default function NewDatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !date || !friendId) {
+    if (!content.trim() || !friendId) {
       alert('Please fill in all required fields');
       return;
     }
 
-    const newDate = {
+    const newTask = {
       id: uuidv4(),
       friendId,
-      title,
-      date,
-      type,
-      description: description.trim() || undefined,
+      content,
+      status: 'Pending' as const,
+      priority,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     try {
-      await DateStorage.addDate(newDate);
-      router.push('/calendar');
+      await TaskStorage.addTask(newTask);
+      router.push('/tasks');
     } catch (error) {
-      console.error('Error saving date:', error);
-      alert('Failed to save date. Please try again.');
+      console.error('Error saving task:', error);
+      alert('Failed to save task. Please try again.');
     }
   };
 
@@ -70,12 +68,12 @@ export default function NewDatePage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Add an Important Date</h1>
+      <h1 className="text-2xl font-bold mb-6">Add a New Task</h1>
       
       {friends.length === 0 ? (
         <div className="bg-amber-50 dark:bg-amber-900 border-l-4 border-amber-500 p-4 rounded-md mb-6">
           <p className="text-amber-800 dark:text-amber-200">
-            You need to add a friend before creating important dates. 
+            You need to add a friend before creating tasks. 
             <Link href="/friends/new" className="underline ml-1 font-medium">Add a friend now</Link>
           </p>
         </div>
@@ -102,61 +100,33 @@ export default function NewDatePage() {
           </div>
           
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-1">
-              Title <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="title"
-              type="text"
-              placeholder="e.g., Birthday, Anniversary, Trip"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium mb-1">
-              Date <span className="text-rose-500">*</span>
-            </label>
-            <input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="type" className="block text-sm font-medium mb-1">
-              Type
-            </label>
-            <select 
-              id="type"
-              value={type} 
-              onChange={(e) => setType(e.target.value as 'One-time' | 'Recurring')} 
-              className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="One-time">One-time Event</option>
-              <option value="Recurring">Recurring (Annual)</option>
-            </select>
-          </div>
-          
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-1">
-              Description (Optional)
+            <label htmlFor="task" className="block text-sm font-medium mb-1">
+              Task Description <span className="text-rose-500">*</span>
             </label>
             <textarea
-              id="description"
-              placeholder="Add any additional details about this date"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              id="task"
+              placeholder="What do you need to do?"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
               rows={3}
+              required
             />
+          </div>
+          
+          <div>
+            <label htmlFor="priority" className="block text-sm font-medium mb-1">
+              Priority
+            </label>
+            <select 
+              id="priority"
+              value={priority} 
+              onChange={(e) => setPriority(e.target.value as 'Normal' | 'High')} 
+              className="w-full p-2 border rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="Normal">Normal</option>
+              <option value="High">High</option>
+            </select>
           </div>
           
           <div className="pt-2">
@@ -164,7 +134,7 @@ export default function NewDatePage() {
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
             >
-              Save Date
+              Create Task
             </button>
           </div>
         </form>
