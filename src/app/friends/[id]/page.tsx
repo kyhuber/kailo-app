@@ -13,12 +13,12 @@ import { v4 as uuidv4 } from 'uuid';
 const getRandomColor = () => {
   // Better contrast color combinations (background + text color classes)
   const colorOptions = [
-    'bg-blue-100 dark:bg-blue-900',
-    'bg-emerald-100 dark:bg-emerald-900',
-    'bg-amber-100 dark:bg-amber-900',
-    'bg-rose-100 dark:bg-rose-900',
-    'bg-indigo-100 dark:bg-indigo-900',
-    'bg-teal-100 dark:bg-teal-900',
+    'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100',
+    'bg-emerald-100 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100',
+    'bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100',
+    'bg-rose-100 dark:bg-rose-900 text-rose-900 dark:text-rose-100',
+    'bg-indigo-100 dark:bg-indigo-900 text-indigo-900 dark:text-indigo-100',
+    'bg-teal-100 dark:bg-teal-900 text-teal-900 dark:text-teal-100',
   ];
   return colorOptions[Math.floor(Math.random() * colorOptions.length)];
 };
@@ -185,7 +185,9 @@ export default function FriendDetailPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className={`p-6 rounded-lg shadow-md mb-6 ${friend.color || 'bg-blue-100 dark:bg-blue-900'}`}>
+      <div className={`p-6 rounded-lg shadow-md mb-6 ${
+          friend.color || 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
+        }`}>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {friend.name}
         </h1>

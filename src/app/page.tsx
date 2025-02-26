@@ -1,19 +1,87 @@
 'use client';
 
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { Friend, FriendStorage } from '@/utils/friends_storage';
+import { TaskStorage } from '@/utils/tasks_storage';
+import { DateStorage, ImportantDate } from '@/utils/dates_storage';
+import EmptyStateHome from '@/components/home/EmptyStateHome';
+import EarlyAdoptionHome from '@/components/home/EarlyAdoptionHome';
+import DashboardHome from '@/components/home/DashboardHome';
 
-const HomePage = () => {
-  return (
-    <div className="container mx-auto p-4 text-center">
-      <h1 className="text-4xl font-extrabold mb-4">Welcome to Kailo</h1>
-      <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
-        Your personal tool for maintaining meaningful friendships.
-      </p>
-      <Link href="/friends" className="btn btn-primary">
-        View Friends
-      </Link>
-    </div>
-  );
-};
+export default function HomePage() {
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [upcomingDates, setUpcomingDates] = useState<ImportantDate[]>([]);
+  const [pendingTasks, setPendingTasks] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
 
-export default HomePage;
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Fetch friends data
+        const storedFriends = await FriendStorage.getFriends();
+        setFriends(Array.isArray(storedFriends) ? storedFriends : []);
+
+        // Get pending tasks count
+        const allTasks = await TaskStorage.getTasksByFriend('all');
+        const pendingCount = Array.isArray(allTasks) 
+          ? allTasks.filter(task => task.status === 'Pending').length 
+          : 0;
+        setPendingTasks(pendingCount);
+
+        // Get upcoming dates (next 30 days)
+        const allDates = await DateStorage.getAllDates();
+        if (Array.isArray(allDates)) {
+          const today = new Date();
+          const thirtyDaysFromNow = new Date();
+          thirtyDaysFromNow.setDate(today.getDate() + 30);
+          
+          const upcoming = allDates.filter(date => {
+            const eventDate = new Date(date.date);
+            return eventDate >= today && eventDate <= thirtyDaysFromNow;
+          }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          
+          setUpcomingDates(upcoming);
+        }
+      } catch (error) {
+        console.error("Error loading homepage data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state (no friends added yet)
+  if (friends.length === 0) {
+    return <EmptyStateHome />;
+  }
+
+  // Early adoption state (1-2 friends)
+  if (friends.length <= 2) {
+    return <EarlyAdoptionHome 
+      friends={friends} 
+      pendingTasks={pendingTasks} 
+      upcomingDates={upcomingDates} 
+    />;
+  }
+
+  // Regular dashboard (3+ friends)
+  return <DashboardHome 
+    friends={friends} 
+    pendingTasks={pendingTasks} 
+    upcomingDates={upcomingDates} 
+  />;
+}

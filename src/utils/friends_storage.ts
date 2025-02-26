@@ -5,9 +5,11 @@ export interface Friend {
   name: string;
   contactInfo?: string;
   tags?: string[];
-  color?: string; // Now includes both background and text color classes
+  color?: string;
   createdAt: string;
   updatedAt: string;
+  pendingTasksCount?: number;
+  upcomingDatesCount?: number;
 }
 
 export class FriendStorage {

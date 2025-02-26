@@ -1,16 +1,9 @@
+// src/app/topics/page.tsx (updated version)
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TopicStorage } from '@/utils/topics_storage';
+import { TopicStorage, Topic } from '@/utils/topics_storage'; // Import Topic interface too
 import Link from 'next/link';
-
-interface Topic {
-  id: string;
-  content: string;
-  type: "general" | "action";
-  status?: "Pending" | "Complete";
-  createdAt: string;
-}
 
 export default function TopicsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -21,7 +14,7 @@ export default function TopicsPage() {
       if (!Array.isArray(storedTopics)) {
         throw new Error("Expected an array of topics");
       }
-      setTopics(storedTopics as Topic[]);
+      setTopics(storedTopics);
     }
     fetchTopics();
   }, []);
