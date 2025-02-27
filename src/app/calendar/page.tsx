@@ -1,14 +1,18 @@
+// src/app/calendar/page.tsx - Updated with DateModal
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { DateStorage, ImportantDate } from '@/utils/dates_storage';
 import { FriendStorage, Friend } from '@/utils/friends_storage';
+import DateModal from '@/components/dates/DateModal';
 
 export default function CalendarPage() {
   const [dates, setDates] = useState<ImportantDate[]>([]);
   const [friends, setFriends] = useState<Record<string, Friend>>({});
   const [loading, setLoading] = useState(true);
+  // Add state for the DateModal
+  const [isAddDateModalOpen, setIsAddDateModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -39,6 +43,11 @@ export default function CalendarPage() {
     
     fetchData();
   }, []);
+
+  // Add handler for adding a new date
+  const handleAddDate = (newDate: ImportantDate) => {
+    setDates(prev => [...prev, newDate]);
+  };
 
   const groupDatesByMonth = () => {
     const grouped: Record<string, ImportantDate[]> = {};
@@ -95,16 +104,30 @@ export default function CalendarPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Calendar</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Calendar</h1>
+        <button 
+          onClick={() => setIsAddDateModalOpen(true)}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+        >
+          Add Date
+        </button>
+      </div>
       
       {dates.length === 0 ? (
         <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             No important dates have been added yet.
           </p>
+          <button
+            onClick={() => setIsAddDateModalOpen(true)}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-2"
+          >
+            Add a Date
+          </button>
           <Link 
             href="/friends" 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
           >
             Go to Friends
           </Link>
@@ -174,6 +197,14 @@ export default function CalendarPage() {
           ))}
         </div>
       )}
+
+      {/* Add DateModal component */}
+      <DateModal
+        isOpen={isAddDateModalOpen}
+        onClose={() => setIsAddDateModalOpen(false)}
+        onDateAdded={handleAddDate}
+        friends={Object.values(friends)}
+      />
     </div>
   );
 }
