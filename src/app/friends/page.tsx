@@ -1,4 +1,5 @@
 // src/app/friends/page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,173 +7,115 @@ import Link from 'next/link';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import { TaskStorage } from '@/utils/tasks_storage';
 import { DateStorage } from '@/utils/dates_storage';
-import ConfirmModal from '@/components/shared/ConfirmModal';
-import AddFriendModal from '@/components/friends/AddFriendModal';
+import { AddFriendButton } from '@/components/friends/AddFriendButton';
 
 export default function FriendsPage() {
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
-  const [friendToDelete, setFriendToDelete] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    async function fetchFriends() {
+    async function loadFriends() {
       try {
-        setLoading(true);
         const storedFriends = await FriendStorage.getFriends();
-        if (Array.isArray(storedFriends)) {
-          const friendsWithCounts = await Promise.all(
-            storedFriends.map(async (friend) => {
-              const tasks = await TaskStorage.getTasksByFriend(friend.id);
-              const pendingTasksCount = Array.isArray(tasks) 
-                ? tasks.filter((task) => task.status === 'Pending').length
-                : 0;
-              const dates = await DateStorage.getDatesByFriend(friend.id);
-              const upcomingDatesCount = Array.isArray(dates) 
-                ? dates.filter((date) => new Date(date.date) >= new Date()).length
-                : 0;
-              return { ...friend, pendingTasksCount, upcomingDatesCount };
-            })
-          );
-          setFriends(friendsWithCounts);
-        }
+        setFriends(Array.isArray(storedFriends) ? storedFriends : []);
       } catch (error) {
-        console.error("Error loading friends:", error);
+        console.error("Error loading friends data:", error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchFriends();
+    loadFriends();
   }, []);
 
-  const handleDeleteFriend = async (id: string) => {
-    await FriendStorage.deleteFriend(id);
-    setFriends(friends.filter((friend) => friend.id !== id));
-    setFriendToDelete(null);
-  };
-
-  const handleAddFriend = (newFriend: Friend) => {
-    setFriends(prev => [...prev, { ...newFriend, pendingTasksCount: 0, upcomingDatesCount: 0 }]);
-  };
-
-  const filteredFriends = friends.filter((friend) =>
+  // Filter friends based on search query
+  const filteredFriends = friends.filter(friend => 
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Friends</h1>
-        <button
-          onClick={() => setIsAddFriendModalOpen(true)}
-          className="btn btn-primary"
-        >
-          Add Friend
-        </button>
-      </div>
+  async function handleDeleteFriend(friendId: string) {
+    if (window.confirm('Are you sure you want to delete this friend?')) {
+      try {
+        await FriendStorage.deleteFriend(friendId);
+        setFriends(friends.filter(f => f.id !== friendId));
+      } catch (error) {
+        console.error("Error deleting friend:", error);
+      }
+    }
+  }
 
-      <div className="mb-4">
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="h-8 bg-gray-700 rounded w-64"></div>
+          <div className="h-4 bg-gray-700 rounded w-full"></div>
+          <div className="h-24 bg-gray-700 rounded w-full mt-4"></div>
+          <div className="h-24 bg-gray-700 rounded w-full mt-2"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-white">Friends</h1>
+        <AddFriendButton />
+      </div>
+      
+      <div className="mb-6">
         <input
           type="text"
           placeholder="Search friends..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg"
+          className="w-full p-3 rounded-lg bg-slate-700 text-white placeholder-slate-400 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
-          <p className="mt-2">Loading friends...</p>
-        </div>
-      ) : filteredFriends.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
-            {searchQuery ? 'No friends match your search.' : 'No friends added yet.'}
-          </p>
-          <button
-            onClick={() => setIsAddFriendModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Add Your First Friend
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredFriends.map((friend) => (
-            <div key={friend.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition">
-              <div className="flex justify-between items-start mb-3">
-                <Link href={`/friends/${friend.id}`} className="block">
-                  <h2 className="text-xl font-semibold hover:text-blue-600 dark:hover:text-blue-400">{friend.name}</h2>
+      
+      <div className="space-y-4">
+        {filteredFriends.length === 0 ? (
+          <div className="bg-slate-800 rounded-lg p-6 text-center">
+            <p className="text-slate-400">No friends found. Add a friend to get started!</p>
+          </div>
+        ) : (
+          filteredFriends.map(friend => (
+            <div key={friend.id} className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm">
+              <div className="flex justify-between items-center">
+                <Link href={`/friends/${friend.id}`}>
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white hover:text-blue-500 dark:hover:text-blue-400 transition">
+                    {friend.name}
+                  </h3>
                 </Link>
-                <button
-                  onClick={() => setFriendToDelete(friend.id)}
-                  className="text-gray-400 hover:text-rose-500"
-                  aria-label="Delete friend"
+                <button 
+                  onClick={() => handleDeleteFriend(friend.id)}
+                  className="text-red-500 hover:text-red-700 transition"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
+                  Delete
                 </button>
               </div>
               
-              {friend.tags && friend.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {friend.tags.map((tag) => (
-                    <span key={tag} className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full text-xs">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-              
-              <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex items-center">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <div className="mt-3 flex flex-wrap gap-4">
+                <Link href={`/friends/${friend.id}/notes`} className="flex items-center text-sm text-slate-500 dark:text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <span className={friend.pendingTasksCount ? "font-medium text-blue-600 dark:text-blue-400" : ""}>
-                    {friend.pendingTasksCount} task{friend.pendingTasksCount !== 1 ? 's' : ''}
-                  </span>
-                </div>
+                  Pending Notes
+                </Link>
                 
-                <div className="flex items-center">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <Link href={`/friends/${friend.id}/dates`} className="flex items-center text-sm text-slate-500 dark:text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className={friend.upcomingDatesCount ? "font-medium text-teal-600 dark:text-teal-400" : ""}>
-                    {friend.upcomingDatesCount} date{friend.upcomingDatesCount !== 1 ? 's' : ''}
-                  </span>
-                </div>
+                  Upcoming Dates
+                </Link>
               </div>
-              
-              <Link href={`/friends/${friend.id}`} className="mt-3 block text-center w-full py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md text-sm font-medium">
-                View Details
-              </Link>
             </div>
-          ))}
-        </div>
-      )}
-      
-      {/* Modals */}
-      <AddFriendModal 
-        isOpen={isAddFriendModalOpen}
-        onClose={() => setIsAddFriendModalOpen(false)}
-        onFriendAdded={handleAddFriend}
-      />
-      
-      <ConfirmModal
-        isOpen={!!friendToDelete}
-        onClose={() => setFriendToDelete(null)}
-        onConfirm={() => friendToDelete && handleDeleteFriend(friendToDelete)}
-        title="Delete Friend"
-        message="Are you sure you want to delete this friend? This will remove all associated notes, topics, tasks, and dates. This action cannot be undone."
-        confirmButtonText="Delete"
-        variant="danger"
-      />
+          ))
+        )}
+      </div>
     </div>
   );
 }

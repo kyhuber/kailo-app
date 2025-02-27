@@ -1,4 +1,4 @@
-// src/components/friends/AddFriendModal.tsx
+// src/components/friends/FriendModal.tsx
 'use client';
 
 import React, { useState } from 'react';
