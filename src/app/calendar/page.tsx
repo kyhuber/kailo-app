@@ -20,13 +20,13 @@ export default function CalendarPage() {
         setLoading(true);
         
         // Load all dates
-        const allDates = await DateStorage.getAllDates() as ImportantDate[];
+        const allDates = await DateStorage.getAll() as ImportantDate[];
         if (Array.isArray(allDates)) {
           setDates(allDates);
         }
         
         // Load all friends for reference
-        const allFriends = await FriendStorage.getFriends() as Friend[];
+        const allFriends = await FriendStorage.getAll() as Friend[];
         if (Array.isArray(allFriends)) {
           const friendsMap: Record<string, Friend> = {};
           allFriends.forEach(friend => {

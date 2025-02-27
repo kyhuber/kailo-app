@@ -1,4 +1,4 @@
-// src/app/friends/page.tsx
+// src/app/page.tsx
 
 'use client';
 
@@ -20,7 +20,7 @@ export default function HomePage() {
     async function loadData() {
       try {
         // Fetch friends data
-        const storedFriends = await FriendStorage.getFriends();
+        const storedFriends = await FriendStorage.getAll();
         setFriends(Array.isArray(storedFriends) ? storedFriends : []);
 
         // Get pending tasks count
@@ -31,7 +31,7 @@ export default function HomePage() {
         setPendingTasks(pendingCount);
 
         // Get upcoming dates (next 30 days)
-        const allDates = await DateStorage.getAllDates();
+        const allDates = await DateStorage.getAll();
         if (Array.isArray(allDates)) {
           const today = new Date();
           const thirtyDaysFromNow = new Date();

@@ -1,102 +1,112 @@
 // src/components/friends/detail/forms/AddTaskForm.tsx
+'use client';
+
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Task, TaskStorage } from '@/utils/tasks_storage';
+import { TaskStorage, Task } from '@/utils/tasks_storage';
+import { Friend } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
 
 interface AddTaskFormProps {
-  friendId: string;
-  onTaskAdded: (task: Task) => void;
   isOpen: boolean;
   onClose: () => void;
+  onTaskAdded: (task: Task) => void;
+  friendId?: string;
+  initialData?: Partial<Task>;
+  friends?: Friend[];
 }
 
-export default function AddTaskForm({ friendId, onTaskAdded, isOpen, onClose }: AddTaskFormProps) {
-  const [content, setContent] = useState('');
-  const [priority, setPriority] = useState<'Normal' | 'High'>('Normal');
+export default function AddTaskForm({ isOpen, onClose, onTaskAdded, friendId, initialData, friends }: AddTaskFormProps) {
+  const [content, setContent] = useState(initialData?.content || '');
+  const [priority, setPriority] = useState<'Normal' | 'High'>(initialData?.priority || 'Normal');
+  const [selectedFriendId, setSelectedFriendId] = useState<string>(friendId || '');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!content.trim()) return;
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
 
+    if (!content.trim() || (!friendId && !selectedFriendId)) {
+        alert('Please fill in all required fields');
+        return;
+    }
+    
     const newTask: Task = {
-      id: uuidv4(),
-      friendId,
+      id: initialData?.id || uuidv4(),
+      friendId: friendId || selectedFriendId, // Use selected friendId if it exists, otherwise fallback to friendId
       content,
-      status: "Pending",
+      status: 'Pending',
       priority,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: initialData?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
+    
+    if (initialData?.id) {
+        await TaskStorage.updateTaskStatus(initialData.id, initialData.status as 'Active' | 'Archived' | 'Complete' | 'Pending');
+        onTaskAdded(newTask);
+    } else {
+        TaskStorage.addTask(newTask);
+        onTaskAdded(newTask);
+    }
 
-    await TaskStorage.addTask(newTask);
-    onTaskAdded(newTask);
-    setContent('');
-    setPriority('Normal');
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add a New Task">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="task-content">
-            Task Description
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Update Task" : "Add Task"}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {!friendId && (
+            <div className="flex flex-col gap-1">
+              <label htmlFor="friend" className="font-medium">
+                Associated Friend <span className="text-rose-500">*</span>
+              </label>
+                <select
+                    id="friend"
+                    value={selectedFriendId}
+                    onChange={(e) => setSelectedFriendId(e.target.value)}
+                    className="border p-2 rounded-md dark:bg-gray-700 dark:text-gray-200"
+                    required
+                >
+                    <option value="" disabled>Select a friend</option>
+                    {friends?.map(friend => (
+                        <option key={friend.id} value={friend.id}>{friend.name}</option>
+                    ))}
+                </select>
+            </div>
+        )}
+        
+        <div className="flex flex-col gap-1">
+          <label htmlFor="content" className="font-medium">
+            Content
           </label>
           <textarea
-            id="task-content"
+            id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Add a task you need to complete..."
-            className="w-full p-3 border rounded-md dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-            rows={3}
             required
+            className="border p-2 rounded-md dark:bg-gray-700 dark:text-gray-200"
           />
         </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="task-priority">
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="priority" className="font-medium">
             Priority
           </label>
-          <div className="flex gap-4">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                name="priority"
-                checked={priority === 'Normal'}
-                onChange={() => setPriority('Normal')}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2">Normal</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                name="priority"
-                checked={priority === 'High'}
-                onChange={() => setPriority('High')}
-                className="h-4 w-4 text-rose-600 focus:ring-rose-500"
-              />
-              <span className="ml-2 text-rose-600 font-medium">High Priority</span>
-            </label>
-          </div>
-        </div>
-        
-        <div className="flex justify-end gap-3 pt-2">
-          <button 
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          <select
+            id="priority"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as 'Normal' | 'High')}
+            className="border p-2 rounded-md dark:bg-gray-700 dark:text-gray-200"
           >
-            Cancel
-          </button>
-          <button 
-            type="submit"
-            className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
-          >
-            Add Task
-          </button>
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+          </select>
         </div>
+
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md"
+        >
+          {initialData?.id ? "Update Task" : "Add Task"}
+        </button>
       </form>
     </Modal>
   );

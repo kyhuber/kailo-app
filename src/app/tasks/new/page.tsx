@@ -19,7 +19,7 @@ export default function NewTaskPage() {
   useEffect(() => {
     async function loadFriends() {
       try {
-        const allFriends = await FriendStorage.getFriends();
+        const allFriends = await FriendStorage.getAll();
         setFriends(allFriends);
         // Set default friend if any exists
         if (allFriends.length > 0) {

@@ -1,3 +1,5 @@
+// src/app/friends/page.tsx
+ 
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -16,7 +18,7 @@ export default function FriendsPage() {
   const fetchFriends = async () => {
     try {
       setLoading(true);
-      const storedFriends = await FriendStorage.getFriends();
+      const storedFriends = await FriendStorage.getAll();
       if (Array.isArray(storedFriends)) {
         const friendsWithCounts = await Promise.all(
           storedFriends.map(async (friend) => {

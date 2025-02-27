@@ -1,68 +1,47 @@
-import { DatabaseManager } from "./database";
+// src/utils/dates_storage.ts
 
 export interface ImportantDate {
   id: string;
   friendId: string;
   title: string;
   date: string;
-  type: "Recurring" | "One-time";
+  type: 'One-time' | 'Recurring';
   description?: string;
   createdAt: string;
   updatedAt: string;
+  status: 'Active' | 'Archived' | 'Complete' | 'Pending'; // Added status property
+  content?:string;
 }
 
 export class DateStorage {
-  private static STORE_NAME = "dates";
+  private static key = 'dates';
 
-  static async addDate(date: ImportantDate): Promise<boolean> {
-    const db = await DatabaseManager.getDatabase();
-    const tx = db.transaction(DateStorage.STORE_NAME, "readwrite");
-    const store = tx.objectStore(DateStorage.STORE_NAME);
-    store.put(date);
-    return new Promise((resolve) => {
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    });
+  static getAll(): ImportantDate[] {
+    const dates = localStorage.getItem(DateStorage.key);
+    return dates ? JSON.parse(dates) : [];
   }
 
-  static async getDatesByFriend(friendId: string): Promise<ImportantDate[]> {
-    const db = await DatabaseManager.getDatabase();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(DateStorage.STORE_NAME, "readonly");
-      const store = tx.objectStore(DateStorage.STORE_NAME);
-      const request = store.getAll();
-      request.onsuccess = () => {
-        const allDates = request.result as ImportantDate[];
-        if (friendId === "all") {
-          resolve(allDates);
-        } else {
-          resolve(allDates.filter(date => date.friendId === friendId));
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
+  static getDatesByFriend(friendId: string): ImportantDate[] {
+    return DateStorage.getAll().filter(date => date.friendId === friendId);
   }
 
-  static async getAllDates(): Promise<ImportantDate[]> {
-    const db = await DatabaseManager.getDatabase();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(DateStorage.STORE_NAME, "readonly");
-      const store = tx.objectStore(DateStorage.STORE_NAME);
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result as ImportantDate[]);
-      request.onerror = () => reject(request.error);
-    });
+  static getByFriendId(friendId: string): ImportantDate[] {
+    return DateStorage.getAll().filter(date => date.friendId === friendId);
   }
 
-  static async updateDate(date: ImportantDate): Promise<boolean> {
-    const db = await DatabaseManager.getDatabase();
-    const tx = db.transaction(DateStorage.STORE_NAME, "readwrite");
-    const store = tx.objectStore(DateStorage.STORE_NAME);
-    date.updatedAt = new Date().toISOString();
-    store.put(date);
-    return new Promise((resolve) => {
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    });
+  static addDate(date: ImportantDate): void {
+    const dates = DateStorage.getAll();
+    dates.push(date);
+    localStorage.setItem(DateStorage.key, JSON.stringify(dates));
+  }
+  
+  static async updateDate(date: ImportantDate): Promise<void> {
+    const dates = DateStorage.getAll();
+    const dateIndex = dates.findIndex(item => item.id === date.id);
+    if (dateIndex !== -1) {
+      dates[dateIndex] = date;
+      dates[dateIndex].updatedAt = new Date().toISOString();
+      localStorage.setItem(DateStorage.key, JSON.stringify(dates));
+    }
   }
 }

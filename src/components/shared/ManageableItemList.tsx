@@ -1,9 +1,10 @@
 // src/components/shared/ManageableItemList.tsx
 import React, { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
+import { AiOutlineDown, AiOutlineRight } from 'react-icons/ai';
 
 // Define the full set of allowed statuses
-type ItemStatus = 'Active' | 'Archived' | 'Complete' | 'Pending';
+export type ItemStatus = 'Active' | 'Archived' | 'Complete' | 'Pending'; // Changed to be exported
 
 interface ManageableItemListProps<T extends { id: string; status: ItemStatus; updatedAt: string }> {
   title: string;
@@ -39,6 +40,7 @@ export default function ManageableItemList<T extends { id: string; status: ItemS
   const [itemToRestore, setItemToRestore] = useState<string | null>(null);
   const [itemToComplete, setItemToComplete] = useState<string | null>(null);
   const [itemToReopen, setItemToReopen] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const activeItems = items.filter(item => item.status === 'Active' || item.status === 'Pending');
   const completedItems = items.filter(item => item.status === 'Complete');
@@ -141,19 +143,26 @@ export default function ManageableItemList<T extends { id: string; status: ItemS
 
       {/* Archived Items */}
       {archivedItems.length > 0 && (
-        <>
-          <h3 className="font-medium text-lg mb-3">Archived</h3>
-          <div className="space-y-3">
-            {archivedItems.map(item => (
-              <CardComponent
-                key={item.id}
-                item={item}
-                onRestore={setItemToRestore}
-                isArchived
-              />
-            ))}
-          </div>
-        </>
+        <div className="mt-6">
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className="flex items-center gap-2 font-medium text-lg hover:text-blue-500"
+          >
+            {showArchived ? <AiOutlineDown /> : <AiOutlineRight />} Archived
+          </button>
+          {showArchived && (
+            <div className="space-y-3 mt-3">
+              {archivedItems.map(item => (
+                <CardComponent
+                  key={item.id}
+                  item={item}
+                  onRestore={setItemToRestore}
+                  isArchived
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Modals */}

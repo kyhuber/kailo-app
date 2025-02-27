@@ -1,3 +1,4 @@
+// src/utils/friends_storage.ts
 import { DatabaseManager } from "./database";
 
 export interface Friend {
@@ -26,7 +27,7 @@ export class FriendStorage {
     });
   }
 
-  static async getFriends(): Promise<Friend[]> {
+  static async getAll(): Promise<Friend[]> {
     const db = await DatabaseManager.getDatabase();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(FriendStorage.STORE_NAME, "readonly");

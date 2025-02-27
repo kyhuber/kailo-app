@@ -1,8 +1,9 @@
 // src/components/friends/detail/tabs/FriendDatesTab.tsx
-import React, { useState } from 'react';
-import { ImportantDate } from '@/utils/dates_storage';
-import DateCard from '../cards/DateCard';
+import React from 'react';
+import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import AddDateForm from '../forms/AddDateForm';
+import ManageableItemList, { ItemStatus } from '@/components/shared/ManageableItemList'; // Corrected import
+import DateCard from '../cards/DateCard';
 
 interface FriendDatesTabProps {
   friendId: string;
@@ -11,67 +12,32 @@ interface FriendDatesTabProps {
 }
 
 export default function FriendDatesTab({ friendId, dates, setDates }: FriendDatesTabProps) {
-  const [isAddDateModalOpen, setIsAddDateModalOpen] = useState(false);
-  
-  const upcomingDates = dates.filter(date => new Date(date.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
-  const pastDates = dates.filter(date => new Date(date.date) < new Date())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const handleAddDate = (newDate: ImportantDate) => {
-    setDates(prev => [...prev, newDate]);
-  };
+  const handleUpdateDate = async (date:ImportantDate) => {
+    await DateStorage.updateDate(date);
+    setDates(dates.map(existingDate => existingDate.id === date.id ? date : existingDate));
+  }
+
+  const handleUpdateStatus = async (id:string, status: ItemStatus) => {return;}; // Added status parameter
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Important Dates</h2>
-        <button 
-          onClick={() => setIsAddDateModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium"
-        >
-          Add Date
-        </button>
-      </div>
-      
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Track birthdays, events, and other significant dates related to your friend.
-      </p>
-      
-      {/* Upcoming Dates */}
-      <h3 className="font-medium text-lg mb-3">Upcoming Dates</h3>
-      {upcomingDates.length > 0 ? (
-        <div className="space-y-3 mb-6">
-          {upcomingDates.map(date => (
-            <DateCard key={date.id} date={date} />
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-500 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
-          No upcoming dates. Add important dates like birthdays or events.
-        </p>
+    <ManageableItemList<ImportantDate>
+      title="Important Dates"
+      description="Important dates related to your friend, such as birthdays, or anniversaries."
+      addItemButtonLabel="Add Date"
+      items={dates}
+      setItems={setDates}
+      CardComponent={({ item }) => <DateCard item={item} onDateUpdated={handleUpdateDate}/>}
+      AddFormComponent={({ isOpen, onClose, onAdded }) => (
+        <AddDateForm
+          friendId={friendId}
+          isOpen={isOpen}
+          onClose={onClose}
+          onDateAdded={onAdded}
+        />
       )}
-
-      {/* Past Dates */}
-      {pastDates.length > 0 && (
-        <>
-          <h3 className="font-medium text-lg mb-3">Past Dates</h3>
-          <div className="space-y-3">
-            {pastDates.map(date => (
-              <DateCard key={date.id} date={date} isPast={true} />
-            ))}
-          </div>
-        </>
-      )}
-      
-      {/* Modal */}
-      <AddDateForm 
-        friendId={friendId} 
-        onDateAdded={handleAddDate} 
-        isOpen={isAddDateModalOpen}
-        onClose={() => setIsAddDateModalOpen(false)}
-      />
-    </div>
+      onUpdateStatus={handleUpdateStatus}
+      emptyMessage="No dates yet. Add an important date to start remembering."
+    />
   );
 }

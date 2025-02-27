@@ -1,50 +1,63 @@
-// src/components/friends/detail/forms/AddDateForm.tsx
+// src/components/friends/forms/AddDateForm.tsx
+'use client';
+
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import Modal from '@/components/shared/Modal';
 
 interface AddDateFormProps {
-  friendId: string;
-  onDateAdded: (date: ImportantDate) => void;
   isOpen: boolean;
   onClose: () => void;
+  onDateAdded: (date: ImportantDate) => void;
+  friendId?: string;
+  initialData?: Partial<ImportantDate>;
 }
 
-export default function AddDateForm({ friendId, onDateAdded, isOpen, onClose }: AddDateFormProps) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [type, setType] = useState<'One-time' | 'Recurring'>('One-time');
-  const [description, setDescription] = useState('');
+export default function AddDateForm({ isOpen, onClose, onDateAdded, friendId, initialData }: AddDateFormProps) {
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [date, setDate] = useState(initialData?.date || '');
+  const [type, setType] = useState<'One-time' | 'Recurring'>(initialData?.type || 'One-time');
+  const [description, setDescription] = useState(initialData?.description || '');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !date) return;
-
-    const newDate: ImportantDate = {
-      id: uuidv4(),
-      friendId,
-      title,
-      date,
-      type,
-      description: description.trim() || undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    await DateStorage.addDate(newDate);
-    onDateAdded(newDate);
-    
-    // Reset form
+  const resetForm = () => {
     setTitle('');
     setDate('');
     setType('One-time');
     setDescription('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!title.trim() || !date) {
+      return;
+    }
+
+    const newDate: ImportantDate = {
+      id: initialData?.id || uuidv4(),
+      friendId: friendId || '',
+      title: title.trim(),
+      date,
+      type,
+      description: description.trim() || undefined,
+      createdAt: initialData?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: initialData?.status || 'Active', // Added the status
+    };
+    if (initialData?.id) {
+      await DateStorage.updateDate(newDate);
+      onDateAdded(newDate);
+    } else {
+      await DateStorage.addDate(newDate);
+      onDateAdded(newDate);
+    }
+    resetForm();
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add an Important Date">
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Date" : "Add an Important Date"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="date-title">
@@ -60,7 +73,7 @@ export default function AddDateForm({ friendId, onDateAdded, isOpen, onClose }: 
             required
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="date-value">
             Date <span className="text-rose-500">*</span>
@@ -74,35 +87,22 @@ export default function AddDateForm({ friendId, onDateAdded, isOpen, onClose }: 
             required
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="date-type">
             Type
           </label>
-          <div className="flex gap-4">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                name="type"
-                checked={type === 'One-time'}
-                onChange={() => setType('One-time')}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2">One-time Event</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                name="type"
-                checked={type === 'Recurring'}
-                onChange={() => setType('Recurring')}
-                className="h-4 w-4 text-teal-600 focus:ring-teal-500"
-              />
-              <span className="ml-2">Annual (Recurring)</span>
-            </label>
-          </div>
+          <select
+            id="date-type"
+            value={type}
+            onChange={(e) => setType(e.target.value as 'One-time' | 'Recurring')}
+            className="w-full p-3 border rounded-md bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="One-time">One-time Event</option>
+            <option value="Recurring">Recurring (Annual)</option>
+          </select>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="date-description">
             Description (Optional)
@@ -111,25 +111,28 @@ export default function AddDateForm({ friendId, onDateAdded, isOpen, onClose }: 
             id="date-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add additional details about this date..."
+            placeholder="Add additional details..."
             className="w-full p-3 border rounded-md dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
-            rows={2}
+            rows={3}
           />
         </div>
-        
+
         <div className="flex justify-end gap-3 pt-2">
-          <button 
+          <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             Cancel
           </button>
-          <button 
+          <button
             type="submit"
             className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            Add Date
+            {initialData ? "Save Changes" : "Add Date"}
           </button>
         </div>
       </form>
