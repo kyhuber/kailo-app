@@ -1,14 +1,28 @@
 // src/components/friends/AddFriendButton.tsx
-import { AddButton } from '@/components/ui/buttons/AddButton';
+import React, { useState } from 'react';
+import AddFriendModal from './FriendModal';
 
-export function AddFriendButton() {
-  // You could add friend-specific logic here if needed
-  // For example, modal handling, permissions, etc.
+interface AddFriendButtonProps {
+  onFriendAdded: () => void;
+}
+
+export default function AddFriendButton({ onFriendAdded }: AddFriendButtonProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <AddButton 
-      entityType="Friend" 
-      href="/friends/new"
-      // Or if using modal: onClick={() => openFriendModal()} 
-    />
+    <>
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="btn btn-primary"
+      >
+        Add Friend
+      </button>
+      
+      <AddFriendModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onFriendAdded={onFriendAdded}
+      />
+    </>
   );
 }

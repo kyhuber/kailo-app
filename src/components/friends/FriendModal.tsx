@@ -1,4 +1,3 @@
-// src/components/friends/FriendModal.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -9,11 +8,11 @@ import Modal from '@/components/shared/Modal';
 interface AddFriendModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onFriendAdded: (friend: Friend) => void;
+  onFriendAdded: () => void;
   initialData?: Partial<Friend>;
 }
 
-export default function AddFriendModal({ isOpen, onClose, onFriendAdded, initialData }: AddFriendModalProps) {
+export default function FriendModal({ isOpen, onClose, onFriendAdded, initialData }: AddFriendModalProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [contactInfo, setContactInfo] = useState(initialData?.contactInfo || '');
   const [tags, setTags] = useState(initialData?.tags?.join(', ') || '');
@@ -58,7 +57,7 @@ export default function AddFriendModal({ isOpen, onClose, onFriendAdded, initial
     };
     
     await FriendStorage.addFriend(newFriend);
-    onFriendAdded(newFriend);
+    onFriendAdded();
     resetForm();
     onClose();
   };
