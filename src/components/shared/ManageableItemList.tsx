@@ -6,7 +6,7 @@ import { AiOutlineDown, AiOutlineRight } from 'react-icons/ai';
 // Define the full set of allowed statuses
 export type ItemStatus = 'Active' | 'Archived' | 'Complete' | 'Pending'; // Changed to be exported
 
-interface ManageableItemListProps<T extends { id: string; status: ItemStatus; updatedAt: string }> {
+interface ManageableItemListProps<T extends { id: string; status?: ItemStatus; updatedAt: string }> { // Status is now optional
   title: string;
   description: string;
   addItemButtonLabel: string;
@@ -20,7 +20,7 @@ interface ManageableItemListProps<T extends { id: string; status: ItemStatus; up
   pendingSort?: (a: T, b: T) => number;
 }
 
-export default function ManageableItemList<T extends { id: string; status: ItemStatus; updatedAt: string }>(
+export default function ManageableItemList<T extends { id: string; status?: ItemStatus; updatedAt: string }>( // Status is now optional
   {
     title,
     description,

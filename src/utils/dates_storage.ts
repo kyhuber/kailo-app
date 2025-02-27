@@ -1,5 +1,7 @@
 // src/utils/dates_storage.ts
 
+import { ItemStatus } from "@/components/shared/ManageableItemList"; // Corrected import
+
 export interface ImportantDate {
   id: string;
   friendId: string;
@@ -9,7 +11,7 @@ export interface ImportantDate {
   description?: string;
   createdAt: string;
   updatedAt: string;
-  status: 'Active' | 'Archived' | 'Complete' | 'Pending'; // Added status property
+  status?: ItemStatus; // Added status property, that is optional
   content?:string;
 }
 

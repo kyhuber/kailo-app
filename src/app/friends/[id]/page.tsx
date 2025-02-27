@@ -17,6 +17,11 @@ import FriendTopicsTab from '@/components/friends/detail/tabs/FriendTopicsTab';
 import FriendTasksTab from '@/components/friends/detail/tabs/FriendTasksTab';
 import FriendDatesTab from '@/components/friends/detail/tabs/FriendDatesTab';
 
+import AddNoteForm from '@/components/friends/detail/forms/AddNoteForm';
+import AddTopicForm from '@/components/friends/detail/forms/AddTopicForm';
+import AddTaskForm from '@/components/friends/detail/forms/AddTaskForm';
+import AddDateForm from '@/components/friends/detail/forms/AddDateForm';
+
 const getRandomColor = () => {
   const colorOptions = [
     'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100',
@@ -33,16 +38,22 @@ export default function FriendDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const friendId = Array.isArray(id) ? id[0] : id || '';
-  
+
   const [friend, setFriend] = useState<Friend | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'topics' | 'tasks' | 'dates'>('overview');
-  
+
   // Data states
   const [notes, setNotes] = useState<Note[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [dates, setDates] = useState<ImportantDate[]>([]);
   const [loading, setLoading] = useState(true);
+
+    // Modal states
+    const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+    const [isAddTopicModalOpen, setIsAddTopicModalOpen] = useState(false);
+    const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+    const [isAddDateModalOpen, setIsAddDateModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchFriendData() {
@@ -62,16 +73,16 @@ export default function FriendDetailPage() {
 
         // Load all data for this friend
         const notesData = await NoteStorage.getNotesByFriend(friendId);
-        setNotes(notesData || []);
+        setNotes(notesData);
 
         const topicsData = await TopicStorage.getTopicsByFriend(friendId);
-        setTopics(topicsData || []);
+        setTopics(topicsData);
 
         const tasksData = await TaskStorage.getTasksByFriend(friendId);
-        setTasks(tasksData || []);
+        setTasks(tasksData);
 
         const datesData = await DateStorage.getDatesByFriend(friendId);
-        setDates(datesData || []);
+        setDates(datesData);
       } catch (error) {
         console.error("Error loading friend data:", error);
       } finally {
@@ -82,57 +93,106 @@ export default function FriendDetailPage() {
     if (friendId) fetchFriendData();
   }, [friendId, router]);
 
+  const handleOpenModal = (type: 'note' | 'topic' | 'task' | 'date') => {
+    switch (type) {
+      case 'note':
+        setIsAddNoteModalOpen(true);
+        break;
+      case 'topic':
+        setIsAddTopicModalOpen(true);
+        break;
+      case 'task':
+        setIsAddTaskModalOpen(true);
+        break;
+      case 'date':
+        setIsAddDateModalOpen(true);
+        break;
+    }
+  };
+
   if (loading || !friend) {
     return <div className="container mx-auto p-6 flex justify-center">Loading...</div>;
   }
 
   return (
     <div className="container mx-auto p-4">
-      <FriendHeader friend={friend} />
-      
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      
+      {/* Hero Section */}
+      <div className='mb-6'>
+        <FriendHeader friend={friend} />
+        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+
       {activeTab === 'overview' && (
-        <FriendOverviewTab 
-          notes={notes} 
-          topics={topics} 
-          tasks={tasks} 
-          dates={dates} 
+        <FriendOverviewTab
+          notes={notes}
+          topics={topics}
+          tasks={tasks}
+          dates={dates}
           setActiveTab={setActiveTab}
+          onOpenModal={handleOpenModal} // New prop added
         />
       )}
-      
+
       {activeTab === 'notes' && (
-        <FriendNotesTab 
-          friendId={friendId} 
-          notes={notes} 
+        <FriendNotesTab
+          friendId={friendId}
+          notes={notes}
           setNotes={setNotes}
         />
       )}
-      
+
       {activeTab === 'topics' && (
-        <FriendTopicsTab 
-          friendId={friendId} 
-          topics={topics} 
+        <FriendTopicsTab
+          friendId={friendId}
+          topics={topics}
           setTopics={setTopics}
         />
       )}
-      
+
       {activeTab === 'tasks' && (
-        <FriendTasksTab 
-          friendId={friendId} 
-          tasks={tasks} 
+        <FriendTasksTab
+          friendId={friendId}
+          tasks={tasks}
           setTasks={setTasks}
         />
       )}
-      
+
       {activeTab === 'dates' && (
-        <FriendDatesTab 
-          friendId={friendId} 
-          dates={dates} 
+        <FriendDatesTab
+          friendId={friendId}
+          dates={dates}
           setDates={setDates}
         />
       )}
+
+      {/* Modals */}
+      <AddNoteForm
+        friendId={friendId}
+        isOpen={isAddNoteModalOpen}
+        onClose={() => setIsAddNoteModalOpen(false)}
+        onNoteAdded={(note) => setNotes(prev => [...prev, note])}
+      />
+
+      <AddTopicForm
+        friendId={friendId}
+        isOpen={isAddTopicModalOpen}
+        onClose={() => setIsAddTopicModalOpen(false)}
+        onTopicAdded={(topic) => setTopics(prev => [...prev, topic])}
+      />
+
+      <AddTaskForm
+        friendId={friendId}
+        isOpen={isAddTaskModalOpen}
+        onClose={() => setIsAddTaskModalOpen(false)}
+        onTaskAdded={(task) => setTasks(prev => [...prev, task])}
+      />
+
+      <AddDateForm
+        friendId={friendId}
+        isOpen={isAddDateModalOpen}
+        onClose={() => setIsAddDateModalOpen(false)}
+        onDateAdded={(date) => setDates(prev => [...prev, date])}
+      />
     </div>
   );
 }

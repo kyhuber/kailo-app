@@ -15,7 +15,7 @@ export default function DatesPage() {
 
   useEffect(() => {
     async function fetchDates() {
-      const storedDates = await DateStorage.getAllDates();
+      const storedDates = await DateStorage.getAll();
       if (!Array.isArray(storedDates)) {
         throw new Error("Expected an array of dates");
       }

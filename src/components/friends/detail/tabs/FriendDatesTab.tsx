@@ -2,7 +2,7 @@
 import React from 'react';
 import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import AddDateForm from '../forms/AddDateForm';
-import ManageableItemList, { ItemStatus } from '@/components/shared/ManageableItemList'; // Corrected import
+import ManageableItemList from '@/components/shared/ManageableItemList';
 import DateCard from '../cards/DateCard';
 
 interface FriendDatesTabProps {
@@ -18,7 +18,7 @@ export default function FriendDatesTab({ friendId, dates, setDates }: FriendDate
     setDates(dates.map(existingDate => existingDate.id === date.id ? date : existingDate));
   }
 
-  const handleUpdateStatus = async (id:string, status: ItemStatus) => {return;}; // Added status parameter
+  const handleUpdateStatus = async () => {return;}; // Removed id and status since they are unused
 
   return (
     <ManageableItemList<ImportantDate>
