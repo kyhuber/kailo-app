@@ -5,6 +5,7 @@ import { Topic } from '@/utils/topics_storage';
 import { Task } from '@/utils/tasks_storage';
 import { ImportantDate } from '@/utils/dates_storage';
 import EmptyState from '../EmptyState';
+import { AiOutlinePlus } from 'react-icons/ai';
 
 interface FriendOverviewTabProps {
   notes: Note[];
@@ -25,7 +26,15 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3">Recent Notes</h2>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-semibold">Recent Notes</h2>
+          <button
+            onClick={() => onOpenModal('note')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1" // Changed to button styling
+          >
+            <AiOutlinePlus /> Add Note
+          </button>
+        </div>
         {activeNotes.length > 0 ? (
           <>
             {activeNotes.slice(0, 3).map(note => (
@@ -44,14 +53,22 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
           <EmptyState
             message="No notes yet"
             actionLabel="Add a note +"
-            onAction={() => onOpenModal('note')} // Changed onAction
+            onAction={() => onOpenModal('note')}
           />
         )}
       </div>
 
       {/* Conversation Topics */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3">Conversation Topics</h2>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-semibold">Conversation Topics</h2>
+          <button
+            onClick={() => onOpenModal('topic')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1" // Changed to button styling
+          >
+            <AiOutlinePlus /> Add Topic
+          </button>
+        </div>
         {activeTopics.length > 0 ? (
           <>
             {activeTopics.slice(0, 3).map(topic => (
@@ -70,14 +87,22 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
           <EmptyState
             message="No conversation topics yet"
             actionLabel="Add a topic +"
-            onAction={() => onOpenModal('topic')} // Changed onAction
+            onAction={() => onOpenModal('topic')}
           />
         )}
       </div>
 
       {/* Pending Tasks */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3">Pending Tasks</h2>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-semibold">Pending Tasks</h2>
+          <button
+            onClick={() => onOpenModal('task')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1" // Changed to button styling
+          >
+            <AiOutlinePlus /> Add Task
+          </button>
+        </div>
         {pendingTasks.length > 0 ? (
           <>
             {pendingTasks.slice(0, 3).map(task => (
@@ -107,14 +132,22 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
           <EmptyState
             message="No pending tasks"
             actionLabel="Add a task +"
-            onAction={() => onOpenModal('task')} // Changed onAction
+            onAction={() => onOpenModal('task')}
           />
         )}
       </div>
 
       {/* Upcoming Dates */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-3">Upcoming Dates</h2>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-semibold">Upcoming Dates</h2>
+          <button
+            onClick={() => onOpenModal('date')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1" // Changed to button styling
+          >
+            <AiOutlinePlus /> Add Date
+          </button>
+        </div>
         {upcomingDates.length > 0 ? (
           <>
             {upcomingDates.slice(0, 3).map(date => (
@@ -140,7 +173,7 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
           <EmptyState
             message="No upcoming dates"
             actionLabel="Add a date +"
-            onAction={() => onOpenModal('date')} // Changed onAction
+            onAction={() => onOpenModal('date')}
           />
         )}
       </div>

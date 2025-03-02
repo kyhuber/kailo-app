@@ -217,7 +217,7 @@ export default function TasksPage() {
             onTaskAdded={onAdded}
             isOpen={isOpen}
             onClose={onClose}
-            friends={Object.values(friends)} // Added this line
+            friends={Object.values(friends)}
           />
         )}
         onUpdateStatus={handleUpdateTaskStatus}

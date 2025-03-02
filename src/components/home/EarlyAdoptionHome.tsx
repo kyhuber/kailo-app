@@ -69,7 +69,7 @@ export default function EarlyAdoptionHome({ friends, pendingTasks, upcomingDates
           <div className="space-y-3">
             <QuickActionCard 
               title="Add a Task"
-              description="Create a new task to complete"
+              description="Add a new task to complete"
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-600 dark:text-teal-300" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
@@ -153,7 +153,7 @@ export default function EarlyAdoptionHome({ friends, pendingTasks, upcomingDates
                 href="/tasks/new"
                 className="mt-2 inline-block text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline"
               >
-                Create a task →
+                Add a task →
               </Link>
             </div>
           )}

@@ -72,7 +72,7 @@ export default function EmptyStateHome() {
         <h3 className="text-lg font-semibold mb-2 text-blue-800 dark:text-blue-300">How Kailo Works</h3>
         <ol className="list-decimal list-inside space-y-3 text-gray-700 dark:text-gray-300">
           <li>Add friends to keep track of their important information</li>
-          <li>Create notes, topics, tasks, and important dates for each friend</li>
+          <li>Add notes, topics, tasks, and important dates for each friend</li>
           <li>Use the global views to see all your tasks and upcoming dates</li>
           <li>Review a friend profile before meeting with them to refresh your memory</li>
         </ol>

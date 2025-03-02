@@ -110,6 +110,23 @@ export default function FriendDetailPage() {
     }
   };
 
+  const handleCloseModal = (type: 'note' | 'topic' | 'task' | 'date') => {
+    switch (type) {
+        case 'note':
+          setIsAddNoteModalOpen(false);
+          break;
+        case 'topic':
+          setIsAddTopicModalOpen(false);
+          break;
+        case 'task':
+          setIsAddTaskModalOpen(false);
+          break;
+        case 'date':
+          setIsAddDateModalOpen(false);
+          break;
+      }
+  }
+
   if (loading || !friend) {
     return <div className="container mx-auto p-6 flex justify-center">Loading...</div>;
   }
@@ -129,7 +146,7 @@ export default function FriendDetailPage() {
           tasks={tasks}
           dates={dates}
           setActiveTab={setActiveTab}
-          onOpenModal={handleOpenModal} // New prop added
+          onOpenModal={handleOpenModal} 
         />
       )}
 
@@ -169,28 +186,28 @@ export default function FriendDetailPage() {
       <AddNoteForm
         friendId={friendId}
         isOpen={isAddNoteModalOpen}
-        onClose={() => setIsAddNoteModalOpen(false)}
+        onClose={() => handleCloseModal('note')}
         onNoteAdded={(note) => setNotes(prev => [...prev, note])}
       />
 
       <AddTopicForm
         friendId={friendId}
         isOpen={isAddTopicModalOpen}
-        onClose={() => setIsAddTopicModalOpen(false)}
+        onClose={() => handleCloseModal('topic')}
         onTopicAdded={(topic) => setTopics(prev => [...prev, topic])}
       />
 
       <AddTaskForm
         friendId={friendId}
         isOpen={isAddTaskModalOpen}
-        onClose={() => setIsAddTaskModalOpen(false)}
+        onClose={() => handleCloseModal('task')}
         onTaskAdded={(task) => setTasks(prev => [...prev, task])}
       />
 
       <AddDateForm
         friendId={friendId}
         isOpen={isAddDateModalOpen}
-        onClose={() => setIsAddDateModalOpen(false)}
+        onClose={() => handleCloseModal('date')}
         onDateAdded={(date) => setDates(prev => [...prev, date])}
       />
     </div>
