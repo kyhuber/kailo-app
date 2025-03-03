@@ -7,11 +7,12 @@ export interface ImportantDate {
   friendId: string;
   title: string;
   date: string;
+  endDate?: string;
   type: 'One-time' | 'Recurring';
   description?: string;
   createdAt: string;
   updatedAt: string;
-  status?: ItemStatus; // Added status property, that is optional
+  status?: ItemStatus;
   content?:string;
 }
 

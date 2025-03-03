@@ -155,6 +155,7 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
                 <p className="font-medium">{date.title}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {new Date(date.date).toLocaleDateString()}
+                  {date.endDate && ` - ${new Date(date.endDate).toLocaleDateString()}`}
                   {date.type === 'Recurring' && ' (Recurring)'}
                 </p>
                 {date.description && (

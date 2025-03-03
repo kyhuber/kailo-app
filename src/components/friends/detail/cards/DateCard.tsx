@@ -20,6 +20,7 @@ export default function DateCard({ item, onDateUpdated }: DateCardProps) {
           <p className="font-medium">{item.title}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             {new Date(item.date).toLocaleDateString()}
+            {item.endDate && ` - ${new Date(item.endDate).toLocaleDateString()}`}
             {item.type === 'Recurring' && ' (Recurring)'}
           </p>
           {item.description && (

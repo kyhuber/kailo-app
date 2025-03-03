@@ -28,7 +28,7 @@ export function AddButton({
 }: AddButtonProps) {
   return (
     <ActionButton
-      label={`Add ${entityType}`}
+      label={`+ Add ${entityType}`}
       icon={<PlusIcon />}
       variant={variant}
       href={href}

@@ -18,6 +18,7 @@ interface DateModalProps {
 export default function DateModal({ isOpen, onClose, onDateAdded, friends, initialData }: DateModalProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [date, setDate] = useState(initialData?.date || '');
+  const [endDate, setEndDate] = useState(initialData?.endDate || '');
   const [friendId, setFriendId] = useState(initialData?.friendId || (friends.length > 0 ? friends[0].id : ''));
   const [type, setType] = useState<'One-time' | 'Recurring'>(initialData?.type || 'One-time');
   const [description, setDescription] = useState(initialData?.description || '');
@@ -25,6 +26,7 @@ export default function DateModal({ isOpen, onClose, onDateAdded, friends, initi
   const resetForm = () => {
     setTitle('');
     setDate('');
+    setEndDate('');
     setFriendId(friends.length > 0 ? friends[0].id : '');
     setType('One-time');
     setDescription('');
@@ -42,6 +44,7 @@ export default function DateModal({ isOpen, onClose, onDateAdded, friends, initi
       friendId,
       title: title.trim(),
       date,
+      endDate: endDate || undefined,
       type,
       description: description.trim() || undefined,
       createdAt: initialData?.createdAt || new Date().toISOString(),
@@ -112,6 +115,20 @@ export default function DateModal({ isOpen, onClose, onDateAdded, friends, initi
           />
         </div>
         
+        <div>
+          <label className="block text-sm font-medium mb-1" htmlFor="end-date-value">
+            End Date (Optional)
+          </label>
+          <input
+            id="end-date-value"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="w-full p-3 border rounded-md dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
+            min={date}
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="date-type">
             Type

@@ -84,7 +84,7 @@ export default function CalendarPage() {
 
   const groupedDates = groupDatesByMonth();
 
-  const getDaysUntil = (dateString: string) => {
+  const getDaysUntil = (dateString: string, endDateString?: string) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const targetDate = new Date(dateString);
@@ -95,7 +95,14 @@ export default function CalendarPage() {
     
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Tomorrow';
-    return `In ${diffDays} days`;
+    
+    // If there's an end date, calculate duration
+    if (endDateString) {
+      const endDate = new Date(endDateString);
+      endDate.setHours(0, 0, 0, 0);
+      const duration = Math.ceil((endDate.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
+      return `In ${diffDays} days (${duration} day${duration !== 1 ? 's' : ''})`;
+    }
   };
 
   if (loading) {
@@ -165,6 +172,13 @@ export default function CalendarPage() {
                               month: 'long', 
                               day: 'numeric' 
                             })}
+                            {date.endDate && (
+                            <span> - {new Date(date.endDate).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'long',
+                              day: 'numeric'
+                            })}</span>
+                          )}
                           </p>
                           
                           <Link 
@@ -185,7 +199,7 @@ export default function CalendarPage() {
                               ? 'bg-red-100 text-red-800'
                               : 'bg-green-100 text-green-800'
                           }`}>
-                            {getDaysUntil(date.date)}
+                            {getDaysUntil(date.date, date.endDate)}
                           </span>
                         </div>
                       </div>
