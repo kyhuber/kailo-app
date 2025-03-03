@@ -98,7 +98,7 @@ export default function CalendarPage() {
   const groupedDates = groupDatesByMonth();
   
   // Count months with events
-  const monthsWithEvents = Object.entries(groupedDates).filter(([_, monthDates]) => 
+  const monthsWithEvents = Object.entries(groupedDates).filter(([, monthDates]) => 
     monthDates.length > 0
   );
   
@@ -209,7 +209,7 @@ export default function CalendarPage() {
           
           {/* Empty months in collapsed view */}
           {Object.entries(groupedDates)
-            .filter(([_, monthDates]) => monthDates.length === 0)
+            .filter(([, monthDates]) => monthDates.length === 0)
             .length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-1">
                 <details className="group">
@@ -224,7 +224,7 @@ export default function CalendarPage() {
                   <div className="pt-1 pb-2 px-3">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                       {Object.entries(groupedDates)
-                        .filter(([_, monthDates]) => monthDates.length === 0)
+                        .filter(([, monthDates]) => monthDates.length === 0)
                         .map(([month]) => (
                           <div key={month} className="text-sm p-2 bg-gray-50 dark:bg-gray-700 rounded">
                             {month}

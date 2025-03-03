@@ -2,35 +2,35 @@
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStorage } from '@/utils/tasks_storage';
 import Modal from '@/components/shared/Modal';
-import { Friend } from '@/utils/friends_storage'; // Import Friend type
-import Select from 'react-select'; // Import react-select
+import { Friend } from '@/utils/friends_storage';
+import Select from 'react-select';
 
 interface AddTaskFormProps {
-  friendId?: string; // Make friendId optional
+  friendId?: string;
   isOpen: boolean;
   onClose: () => void;
   onTaskAdded: (task: Task) => void;
-  friends?: Friend[]; // Add the friends prop
+  friends?: Friend[];
 }
 
 export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, friends }: AddTaskFormProps) {
   const [content, setContent] = useState('');
-  const [priority, setPriority] = useState<'Normal' | 'High'>('Normal'); // Updated priority options
+  const [priority, setPriority] = useState<'Normal' | 'High'>('Normal');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFriend, setSelectedFriend] = useState<{ value: string; label: string } | null>(null); // Initialize the new state variable
+  const [selectedFriend, setSelectedFriend] = useState<{ value: string; label: string } | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setContent('');
-      setPriority('Normal'); // Set to 'Normal' on close
-      setSelectedFriend(null); // Clear the selected friend when the modal closes
+      setPriority('Normal');
+      setSelectedFriend(null);
     } else if (friendId && friends) {
       const initialFriend = friends.find((friend) => friend.id === friendId);
       if (initialFriend) {
         setSelectedFriend({ value: initialFriend.id, label: initialFriend.name });
       }
     }
-  }, [isOpen, friendId]);
+  }, [isOpen, friendId, friends]); // Added friends to the dependency array
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +49,7 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
 
       const newTask: Task = {
         id: crypto.randomUUID(),
-        friendId: actualFriendId, // Use the selected friend's ID
+        friendId: actualFriendId,
         content,
         status: 'Pending',
         priority,
@@ -119,9 +119,9 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
             name="priority"
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
             value={priority}
-            onChange={(e) => setPriority(e.target.value as 'Normal' | 'High')} // Updated priority type
+            onChange={(e) => setPriority(e.target.value as 'Normal' | 'High')}
           >
-            <option value="Normal">Normal</option> {/* Updated value */}
+            <option value="Normal">Normal</option>
             <option value="High">High</option>
           </select>
         </div>
