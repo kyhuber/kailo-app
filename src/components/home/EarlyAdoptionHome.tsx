@@ -19,7 +19,7 @@ export default function EarlyAdoptionHome({ friends, pendingTasks, upcomingDates
           Welcome to Kailo
         </h1>
         <p className="text-lg text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-          Your personal friendship management tool
+          Friendships thrive on the details
         </p>
       </div>
       
