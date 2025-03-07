@@ -1,6 +1,6 @@
 // src/utils/dates_storage.ts
-
-import { ItemStatus } from "@/components/shared/ManageableItemList";
+import { FirebaseStorage } from './firebase_storage';
+import { ItemStatus } from '@/types/shared';
 
 export interface ImportantDate {
   id: string;
@@ -13,38 +13,20 @@ export interface ImportantDate {
   createdAt: string;
   updatedAt: string;
   status?: ItemStatus;
-  content?:string;
+  content?: string;
 }
 
-export class DateStorage {
-  private static key = 'dates';
-
-  static getAll(): ImportantDate[] {
-    const dates = localStorage.getItem(DateStorage.key);
-    return dates ? JSON.parse(dates) : [];
+class DateFirebaseStorage extends FirebaseStorage<ImportantDate> {
+  constructor() {
+    super('dates');
   }
 
-  static getDatesByFriend(friendId: string): ImportantDate[] {
-    return DateStorage.getAll().filter(date => date.friendId === friendId);
+  async getDatesByFriend(friendId: string): Promise<ImportantDate[]> {
+    return this.queryByField('friendId', friendId);
   }
 
-  static getByFriendId(friendId: string): ImportantDate[] {
-    return DateStorage.getAll().filter(date => date.friendId === friendId);
-  }
-
-  static addDate(date: ImportantDate): void {
-    const dates = DateStorage.getAll();
-    dates.push(date);
-    localStorage.setItem(DateStorage.key, JSON.stringify(dates));
-  }
-  
-  static async updateDate(date: ImportantDate): Promise<void> {
-    const dates = DateStorage.getAll();
-    const dateIndex = dates.findIndex(item => item.id === date.id);
-    if (dateIndex !== -1) {
-      dates[dateIndex] = date;
-      dates[dateIndex].updatedAt = new Date().toISOString();
-      localStorage.setItem(DateStorage.key, JSON.stringify(dates));
-    }
+  async updateDate(date: ImportantDate): Promise<boolean> {
+    date.updatedAt = new Date().toISOString();
+    return this.updateItem(date);
   }
 }

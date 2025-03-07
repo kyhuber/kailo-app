@@ -1,5 +1,8 @@
 // src/utils/friends_storage.ts
-import { DatabaseManager } from "./database";
+import { FirebaseStorage } from './firebase_storage';
+import { v4 as uuidv4 } from 'uuid';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 export interface Friend {
   id: string;
@@ -14,64 +17,50 @@ export interface Friend {
   photoUrl?: string;
 }
 
-export class FriendStorage {
-  private static STORE_NAME = "friends";
-
-  static async addFriend(friend: Friend): Promise<boolean> {
-    const db = await DatabaseManager.getDatabase();
-    const tx = db.transaction(FriendStorage.STORE_NAME, "readwrite");
-    const store = tx.objectStore(FriendStorage.STORE_NAME);
-    store.put(friend);
-    return new Promise((resolve) => {
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    });
+class FriendFirebaseStorage extends FirebaseStorage<Friend> {
+  constructor() {
+    super('friends');
   }
 
-  static async getAll(): Promise<Friend[]> {
-    const db = await DatabaseManager.getDatabase();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(FriendStorage.STORE_NAME, "readonly");
-      const store = tx.objectStore(FriendStorage.STORE_NAME);
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result as Friend[]);
-      request.onerror = () => reject(request.error);
-    });
+  async uploadPhoto(friendId: string, photoFile: File): Promise<string | null> {
+    try {
+      const userId = this.getUserId();
+      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/photo.jpg`);
+      
+      await uploadBytes(photoRef, photoFile);
+      const photoUrl = await getDownloadURL(photoRef);
+      
+      // Update friend with photo URL
+      const friend = await this.getById(friendId);
+      if (friend) {
+        friend.photoUrl = photoUrl;
+        await this.updateItem(friend);
+      }
+      
+      return photoUrl;
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      return null;
+    }
   }
 
-  static async getFriend(id: string): Promise<Friend | null> {
-    const db = await DatabaseManager.getDatabase();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(FriendStorage.STORE_NAME, "readonly");
-      const store = tx.objectStore(FriendStorage.STORE_NAME);
-      const request = store.get(id);
-      request.onsuccess = () => {
-        resolve(request.result || null);
-      };
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  static async updateFriend(friend: Friend): Promise<boolean> {
-    const db = await DatabaseManager.getDatabase();
-    const tx = db.transaction(FriendStorage.STORE_NAME, "readwrite");
-    const store = tx.objectStore(FriendStorage.STORE_NAME);
-    friend.updatedAt = new Date().toISOString();
-    store.put(friend);
-    return new Promise((resolve) => {
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    });
-  }
-
-  static async deleteFriend(id: string): Promise<boolean> {
-    const db = await DatabaseManager.getDatabase();
-    const tx = db.transaction(FriendStorage.STORE_NAME, "readwrite");
-    const store = tx.objectStore(FriendStorage.STORE_NAME);
-    store.delete(id);
-    return new Promise((resolve) => {
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => resolve(false);
-    });
+  async deletePhoto(friendId: string): Promise<boolean> {
+    try {
+      const userId = this.getUserId();
+      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/photo.jpg`);
+      await deleteObject(photoRef);
+      
+      // Update friend to remove photo URL
+      const friend = await this.getById(friendId);
+      if (friend) {
+        delete friend.photoUrl;
+        await this.updateItem(friend);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      return false;
+    }
   }
 }

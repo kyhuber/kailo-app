@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.tsx
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
   User, 
@@ -7,7 +7,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged 
 } from 'firebase/auth';
-import { auth } from '@/utils/firebase';
+import { auth } from '@/lib/firebase';
 
 interface AuthContextType {
   currentUser: User | null;

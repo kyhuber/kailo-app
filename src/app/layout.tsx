@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import '@/styles/globals.css';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
