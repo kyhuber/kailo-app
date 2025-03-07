@@ -66,7 +66,7 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
             required
           />
           <div className="mt-2">
-            <VoiceInputButton targetInputId="note-content" />
+            <VoiceInputButton targetInputId="note-content" onTextChange={(text) => setContent(text)} />
           </div>
         </div>
         <div className="flex justify-end gap-3 pt-2">

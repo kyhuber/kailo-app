@@ -25,7 +25,7 @@ class FriendFirebaseStorage extends FirebaseStorage<Friend> {
   async uploadPhoto(friendId: string, photoFile: File): Promise<string | null> {
     try {
       const userId = this.getUserId();
-      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/${uuidv4()}.jpg`);
+      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/${crypto.randomUUID()}.jpg`);
       
       await uploadBytes(photoRef, photoFile);
       const photoUrl = await getDownloadURL(photoRef);

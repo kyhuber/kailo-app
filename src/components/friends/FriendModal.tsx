@@ -1,11 +1,10 @@
 // src/components/friends/FriendModal.tsx
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import Image from 'next/image';
 
 interface AddFriendModalProps {
   isOpen: boolean;
@@ -19,6 +18,9 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
   const [contactInfo, setContactInfo] = useState('');
   const [tags, setTags] = useState('');
   const [user, setUser] = useState<User | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colorOptions = [
     { value: 'bg-teal-100', label: 'Teal' },
@@ -51,6 +53,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
       setContactInfo(initialData?.contactInfo || '');
       setTags(initialData?.tags?.join(', ') || '');
       setSelectedColor(initialData?.color || colorOptions[0].value);
+      setPhotoPreview(initialData?.photoUrl || null);
     }
   }, [isOpen, initialData]);
 
@@ -59,11 +62,36 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
     setContactInfo('');
     setTags('');
     setSelectedColor(colorOptions[0].value);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    // If we're editing an existing friend, we'll need to remove the photo URL
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!name.trim() || !user) {
       return;
     }
@@ -72,18 +100,37 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
       ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
       : undefined;
 
+    // Start with basic friend data
+    const friendId = initialData?.id || uuidv4();
     const newFriend: Friend = {
-      id: initialData?.id || uuidv4(),
+      id: friendId,
       name: name.trim(),
       contactInfo: contactInfo.trim() || undefined,
       tags: tagArray,
       color: selectedColor,
       createdAt: initialData?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      userId: user.uid, // Include the user ID
+      userId: user.uid,
+      photoUrl: initialData?.photoUrl,
     };
 
+    // First save the friend to get an ID if it's new
     await FriendStorage.addItem(newFriend);
+
+    // Handle photo upload if there's a new photo
+    if (photoFile) {
+      const photoUrl = await FriendStorage.uploadPhoto(friendId, photoFile);
+      if (photoUrl) {
+        newFriend.photoUrl = photoUrl;
+        await FriendStorage.updateItem(newFriend);
+      }
+    } else if (photoPreview === null && initialData?.photoUrl) {
+      // If we had a photo but now we don't, remove it
+      await FriendStorage.deletePhoto(friendId);
+      newFriend.photoUrl = undefined;
+      await FriendStorage.updateItem(newFriend);
+    }
+
     onFriendAdded();
     resetForm();
     onClose();
@@ -92,6 +139,60 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Edit Friend" : "Add a New Friend"}>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Photo Upload Section */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Profile Photo</label>
+          <div className="flex items-center space-x-4">
+            <div className="flex-shrink-0">
+              {photoPreview ? (
+                <div className="w-20 h-20 rounded-full overflow-hidden relative">
+                  <img 
+                    src={photoPreview}
+                    alt="Profile preview" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold ${selectedColor}`}>
+                  {name ? name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'NA'}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-grow">
+              <input
+                ref={fileInputRef}
+                type="file"
+                id="photo"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+              <div className="flex gap-2">
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  {photoPreview ? 'Change Photo' : 'Add Photo'}
+                </button>
+                {photoPreview && (
+                  <button 
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Recommended: square photos up to 1MB
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="friend-name">
             Name <span className="text-rose-500">*</span>

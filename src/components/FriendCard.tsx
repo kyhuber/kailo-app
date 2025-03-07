@@ -1,3 +1,4 @@
+// src/components/FriendCard.tsx
 'use client';
 
 import React from 'react';
@@ -37,11 +38,21 @@ export default function FriendCard({ friend, onDelete, onEdit, pendingTasksCount
     <Link href={`/friends/${friend.id}`} className="block transition transform hover:-translate-y-1 hover:shadow-lg">
       <div className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className={`p-5 relative`}>
-          {/* Avatar with Initials */}
+          {/* Avatar with Photo or Initials */}
           <div className="flex items-center mb-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold mr-3 ${colorClasses}`}>
-              {initials}
-            </div>
+            {friend.photoUrl ? (
+              <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
+                <img 
+                  src={friend.photoUrl} 
+                  alt={`${friend.name}`} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold mr-3 ${colorClasses}`}>
+                {initials}
+              </div>
+            )}
             <div>
               <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-0">{friend.name}</h2>
               {friend.contactInfo && (

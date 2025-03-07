@@ -43,7 +43,9 @@ export class FirebaseStorage<T extends { id: string }> {
   async addItem(item: T): Promise<boolean> {
     try {
       const docRef = doc(this.getCollectionRef(), item.id);
-      await setDoc(docRef, item);
+      // Remove undefined values before saving to Firestore
+      const cleanedItem = removeUndefinedValues(item);
+      await setDoc(docRef, cleanedItem);
       return true;
     } catch (error) {
       console.error(`Error adding ${this.collectionName}:`, error);
