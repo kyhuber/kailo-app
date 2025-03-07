@@ -2,23 +2,17 @@
 
 import React from 'react';
 import Link from 'next/link';
-
-interface Friend {
-  id: string;
-  name: string;
-  contactInfo?: string;
-  tags?: string[];
-  color?: string;
-}
+import { Friend } from '@/utils/friends_storage';
 
 interface FriendCardProps {
   friend: Friend;
   onDelete: (id: string) => void;
+  onEdit: (friend: Friend) => void;
   pendingTasksCount?: number;
   upcomingDatesCount?: number;
 }
 
-export default function FriendCard({ friend, onDelete, pendingTasksCount = 0, upcomingDatesCount = 0 }: FriendCardProps) {
+export default function FriendCard({ friend, onDelete, onEdit, pendingTasksCount = 0, upcomingDatesCount = 0 }: FriendCardProps) {
   // Generate initials for the avatar
   const initials = friend.name
     .split(' ')
@@ -88,7 +82,18 @@ export default function FriendCard({ friend, onDelete, pendingTasksCount = 0, up
           </div>
         </div>
 
-        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex justify-between">
+          <button
+            onClick={(e) => {
+              e.preventDefault(); // Prevent navigation
+              e.stopPropagation(); // Prevent event bubbling
+              onEdit(friend);
+            }}
+            className="text-blue-500 hover:text-blue-700 text-sm font-medium transition-colors"
+          >
+            Edit
+          </button>
+          
           <button
             onClick={(e) => {
               e.preventDefault(); // Prevent navigation

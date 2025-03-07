@@ -11,6 +11,7 @@ export interface Friend {
   updatedAt: string;
   pendingTasksCount?: number;
   upcomingDatesCount?: number;
+  photoUrl?: string;
 }
 
 export class FriendStorage {

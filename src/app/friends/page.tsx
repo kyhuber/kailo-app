@@ -14,6 +14,7 @@ export default function FriendsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingFriend, setEditingFriend] = useState<Friend | undefined>(undefined);
 
   const fetchFriends = async () => {
     try {
@@ -49,9 +50,21 @@ export default function FriendsPage() {
     }
   };
 
+  const handleEditFriend = (friend: Friend) => {
+    setEditingFriend(friend);
+    setIsModalOpen(true);
+  };
+
   const handleFriendAdded = () => {
     // Refresh the friends list
     fetchFriends();
+    // Reset editing state
+    setEditingFriend(undefined);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingFriend(undefined);
   };
 
   const filteredFriends = friends.filter((friend) =>
@@ -63,7 +76,10 @@ export default function FriendsPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Friends</h1>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingFriend(undefined);
+            setIsModalOpen(true);
+          }}
           className="btn btn-primary"
         >
           Add Friend
@@ -104,6 +120,7 @@ export default function FriendsPage() {
               key={friend.id}
               friend={friend}
               onDelete={handleDeleteFriend}
+              onEdit={handleEditFriend}
               pendingTasksCount={friend.pendingTasksCount}
               upcomingDatesCount={friend.upcomingDatesCount}
             />
@@ -113,8 +130,9 @@ export default function FriendsPage() {
 
       <FriendModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseModal}
         onFriendAdded={handleFriendAdded}
+        initialData={editingFriend}
       />
     </div>
   );

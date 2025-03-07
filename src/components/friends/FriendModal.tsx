@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
@@ -13,9 +13,9 @@ interface AddFriendModalProps {
 }
 
 export default function FriendModal({ isOpen, onClose, onFriendAdded, initialData }: AddFriendModalProps) {
-  const [name, setName] = useState(initialData?.name || '');
-  const [contactInfo, setContactInfo] = useState(initialData?.contactInfo || '');
-  const [tags, setTags] = useState(initialData?.tags?.join(', ') || '');
+  const [name, setName] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
+  const [tags, setTags] = useState('');
   
   const colorOptions = [
     { value: 'bg-teal-100', label: 'Teal' },
@@ -26,7 +26,17 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
     { value: 'bg-blue-100', label: 'Blue' },
   ];
   
-  const [selectedColor, setSelectedColor] = useState(initialData?.color || colorOptions[0].value);
+  const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
+
+  // Update form when initialData changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || '');
+      setContactInfo(initialData?.contactInfo || '');
+      setTags(initialData?.tags?.join(', ') || '');
+      setSelectedColor(initialData?.color || colorOptions[0].value);
+    }
+  }, [isOpen, initialData]);
 
   const resetForm = () => {
     setName('');
@@ -63,7 +73,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Friend" : "Add a New Friend"}>
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Edit Friend" : "Add a New Friend"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="friend-name">
@@ -151,7 +161,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
             type="submit"
             className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            {initialData ? "Save Changes" : "Add Friend"}
+            {initialData?.id ? "Save Changes" : "Add Friend"}
           </button>
         </div>
       </form>

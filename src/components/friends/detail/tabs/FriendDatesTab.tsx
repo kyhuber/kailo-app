@@ -18,7 +18,7 @@ export default function FriendDatesTab({ friendId, dates, setDates }: FriendDate
     setDates(dates.map(existingDate => existingDate.id === date.id ? date : existingDate));
   }
 
-  const handleUpdateStatus = async () => {return;}; // Removed id and status since they are unused
+  const handleUpdateStatus = async () => {return;};
 
   return (
     <ManageableItemList<ImportantDate>

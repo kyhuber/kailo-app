@@ -1,6 +1,6 @@
 // src/utils/dates_storage.ts
 
-import { ItemStatus } from "@/components/shared/ManageableItemList"; // Corrected import
+import { ItemStatus } from "@/components/shared/ManageableItemList";
 
 export interface ImportantDate {
   id: string;
