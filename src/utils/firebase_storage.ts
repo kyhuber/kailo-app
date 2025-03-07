@@ -1,17 +1,6 @@
-import { db, storage, auth } from '@/lib/firebase';
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where 
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { ItemStatus } from '@/types/shared';
+// src/utils/firebase_storage.ts
+import { db, auth } from '@/lib/firebase';
+import { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, FieldValue } from 'firebase/firestore';
 
 // Utility function to remove undefined values from an object
 const removeUndefinedValues = (obj: any) => {
@@ -43,9 +32,8 @@ export class FirebaseStorage<T extends { id: string }> {
   async addItem(item: T): Promise<boolean> {
     try {
       const docRef = doc(this.getCollectionRef(), item.id);
-      // Remove undefined values before saving to Firestore
-      const cleanedItem = removeUndefinedValues(item);
-      await setDoc(docRef, cleanedItem);
+      const sanitizedItem = removeUndefinedValues(item);
+      await setDoc(docRef, sanitizedItem);
       return true;
     } catch (error) {
       console.error(`Error adding ${this.collectionName}:`, error);
@@ -80,7 +68,8 @@ export class FirebaseStorage<T extends { id: string }> {
   async updateItem(item: T): Promise<boolean> {
     try {
       const docRef = doc(this.getCollectionRef(), item.id);
-      await updateDoc(docRef, { ...item });
+      const sanitizedItem = removeUndefinedValues(item);
+      await updateDoc(docRef, sanitizedItem as { [x: string]: FieldValue | Partial<unknown> | undefined });
       return true;
     } catch (error) {
       console.error(`Error updating ${this.collectionName}:`, error);
