@@ -54,7 +54,7 @@ export default function NewTaskPage() {
     };
 
     try {
-      await TaskStorage.addTask(newTask);
+      await TaskStorage.addItem(newTask);
       router.push('/tasks');
     } catch (error) {
       console.error('Error saving task:', error);

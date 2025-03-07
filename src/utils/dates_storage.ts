@@ -14,6 +14,7 @@ export interface ImportantDate {
   updatedAt: string;
   status?: ItemStatus;
   content?: string;
+  userId: string;
 }
 
 class DateFirebaseStorage extends FirebaseStorage<ImportantDate> {
@@ -30,3 +31,5 @@ class DateFirebaseStorage extends FirebaseStorage<ImportantDate> {
     return this.updateItem(date);
   }
 }
+
+export const DateStorage = new DateFirebaseStorage();

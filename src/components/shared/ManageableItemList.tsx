@@ -1,10 +1,9 @@
 // src/components/shared/ManageableItemList.tsx
+
 import React, { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
 import { AiOutlineDown, AiOutlineRight } from 'react-icons/ai';
-
-// Define the full set of allowed statuses
-export type ItemStatus = 'Active' | 'Archived' | 'Complete' | 'Pending'; // Changed to be exported
+import { ItemStatus } from '@/types/shared';
 
 interface ManageableItemListProps<T extends { id: string; status?: ItemStatus; updatedAt: string }> { // Status is now optional
   title: string;

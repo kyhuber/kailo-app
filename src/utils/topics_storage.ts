@@ -9,6 +9,7 @@ export interface Topic {
   status: ItemStatus;
   createdAt: string;
   updatedAt: string;
+  userId: string;
 }
 
 class TopicFirebaseStorage extends FirebaseStorage<Topic> {
@@ -30,3 +31,5 @@ class TopicFirebaseStorage extends FirebaseStorage<Topic> {
     return false;
   }
 }
+
+export const TopicStorage = new TopicFirebaseStorage();

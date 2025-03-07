@@ -1,4 +1,3 @@
-// src/utils/friends_storage.ts
 import { FirebaseStorage } from './firebase_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -15,6 +14,7 @@ export interface Friend {
   pendingTasksCount?: number;
   upcomingDatesCount?: number;
   photoUrl?: string;
+  userId: string;
 }
 
 class FriendFirebaseStorage extends FirebaseStorage<Friend> {
@@ -25,7 +25,7 @@ class FriendFirebaseStorage extends FirebaseStorage<Friend> {
   async uploadPhoto(friendId: string, photoFile: File): Promise<string | null> {
     try {
       const userId = this.getUserId();
-      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/photo.jpg`);
+      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/${uuidv4()}.jpg`);
       
       await uploadBytes(photoRef, photoFile);
       const photoUrl = await getDownloadURL(photoRef);
@@ -64,3 +64,5 @@ class FriendFirebaseStorage extends FirebaseStorage<Friend> {
     }
   }
 }
+
+export const FriendStorage = new FriendFirebaseStorage();

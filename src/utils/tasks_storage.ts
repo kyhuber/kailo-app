@@ -11,6 +11,7 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  userId: string;
 }
 
 class TaskFirebaseStorage extends FirebaseStorage<Task> {
@@ -35,3 +36,5 @@ class TaskFirebaseStorage extends FirebaseStorage<Task> {
     return false;
   }
 }
+
+export const TaskStorage = new TaskFirebaseStorage();

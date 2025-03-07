@@ -1,8 +1,8 @@
-// src/components/friends/detail/forms/AddTopicForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Topic, TopicStorage } from '@/utils/topics_storage';
 import Modal from '@/components/shared/Modal';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 interface AddTopicFormProps {
   friendId: string;
@@ -13,10 +13,24 @@ interface AddTopicFormProps {
 
 export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }: AddTopicFormProps) {
   const [content, setContent] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !user) return;
 
     const newTopic: Topic = {
       id: uuidv4(),
@@ -24,10 +38,11 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
       content,
       status: "Active",
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      userId: user.uid, // Include the user ID
     };
 
-    await TopicStorage.addTopic(newTopic);
+    await TopicStorage.addItem(newTopic);
     onTopicAdded(newTopic);
     setContent('');
     onClose();

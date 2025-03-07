@@ -8,6 +8,7 @@ import { TaskStorage } from '@/utils/tasks_storage';
 import { DateStorage } from '@/utils/dates_storage';
 import FriendCard from '@/components/FriendCard';
 import FriendModal from '@/components/friends/FriendModal';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function FriendsPage() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -45,7 +46,7 @@ export default function FriendsPage() {
 
   const handleDeleteFriend = async (id: string) => {
     if (confirm('Are you sure you want to delete this friend?')) {
-      await FriendStorage.deleteFriend(id);
+      await FriendStorage.deleteItem(id);
       setFriends(friends.filter((friend) => friend.id !== id));
     }
   };
@@ -72,68 +73,70 @@ export default function FriendsPage() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Friends</h1>
-        <button 
-          onClick={() => {
-            setEditingFriend(undefined);
-            setIsModalOpen(true);
-          }}
-          className="btn btn-primary"
-        >
-          Add Friend
-        </button>
-      </div>
-
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search friends..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg"
-        />
-      </div>
-
-      {loading ? (
-        <div className="container mx-auto p-4 text-center">Loading friends...</div>
-      ) : filteredFriends.length === 0 ? (
-        <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <p className="text-xl mb-4">No friends found.</p>
-          {friends.length === 0 && (
-            <p className="text-gray-600 dark:text-gray-400 mb-4">Add your first friend to get started!</p>
-          )}
-          {friends.length === 0 && (
+      <ProtectedRoute>
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Friends</h1>
             <button 
-              onClick={() => setIsModalOpen(true)} 
+              onClick={() => {
+                setEditingFriend(undefined);
+                setIsModalOpen(true);
+              }}
               className="btn btn-primary"
             >
-              Add Your First Friend
+              Add Friend
             </button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFriends.map((friend) => (
-            <FriendCard
-              key={friend.id}
-              friend={friend}
-              onDelete={handleDeleteFriend}
-              onEdit={handleEditFriend}
-              pendingTasksCount={friend.pendingTasksCount}
-              upcomingDatesCount={friend.upcomingDatesCount}
+          </div>
+  
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search friends..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg"
             />
-          ))}
+          </div>
+  
+          {loading ? (
+            <div className="container mx-auto p-4 text-center">Loading friends...</div>
+          ) : filteredFriends.length === 0 ? (
+            <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <p className="text-xl mb-4">No friends found.</p>
+              {friends.length === 0 && (
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Add your first friend to get started!</p>
+              )}
+              {friends.length === 0 && (
+                <button 
+                  onClick={() => setIsModalOpen(true)} 
+                  className="btn btn-primary"
+                >
+                  Add Your First Friend
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredFriends.map((friend) => (
+                <FriendCard
+                  key={friend.id}
+                  friend={friend}
+                  onDelete={handleDeleteFriend}
+                  onEdit={handleEditFriend}
+                  pendingTasksCount={friend.pendingTasksCount}
+                  upcomingDatesCount={friend.upcomingDatesCount}
+                />
+              ))}
+            </div>
+          )}
+  
+          <FriendModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            onFriendAdded={handleFriendAdded}
+            initialData={editingFriend}
+          />
         </div>
-      )}
-
-      <FriendModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onFriendAdded={handleFriendAdded}
-        initialData={editingFriend}
-      />
-    </div>
-  );
-}
+      </ProtectedRoute>
+    );
+  }

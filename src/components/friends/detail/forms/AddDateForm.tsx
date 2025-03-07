@@ -1,10 +1,10 @@
-// src/components/friends/forms/AddDateForm.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import Modal from '@/components/shared/Modal';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 interface AddDateFormProps {
   isOpen: boolean;
@@ -20,6 +20,20 @@ export default function AddDateForm({ isOpen, onClose, onDateAdded, friendId, in
   const [endDate, setEndDate] = useState(initialData?.endDate || '');
   const [type, setType] = useState<'One-time' | 'Recurring'>(initialData?.type || 'One-time');
   const [description, setDescription] = useState(initialData?.description || '');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const resetForm = () => {
     setTitle('');
@@ -32,7 +46,7 @@ export default function AddDateForm({ isOpen, onClose, onDateAdded, friendId, in
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim() || !date) {
+    if (!title.trim() || !date || !user) {
       return;
     }
 
@@ -46,13 +60,15 @@ export default function AddDateForm({ isOpen, onClose, onDateAdded, friendId, in
       description: description.trim() || undefined,
       createdAt: initialData?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      userId: user.uid, // Include the user ID
       status: initialData?.status || 'Active', // Added the status
     };
+
     if (initialData?.id) {
       await DateStorage.updateDate(newDate);
       onDateAdded(newDate);
     } else {
-      await DateStorage.addDate(newDate);
+      await DateStorage.addItem(newDate);
       onDateAdded(newDate);
     }
     resetForm();

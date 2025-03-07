@@ -1,9 +1,11 @@
+// src/components/friends/FriendModal.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 interface AddFriendModalProps {
   isOpen: boolean;
@@ -16,7 +18,8 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
   const [name, setName] = useState('');
   const [contactInfo, setContactInfo] = useState('');
   const [tags, setTags] = useState('');
-  
+  const [user, setUser] = useState<User | null>(null);
+
   const colorOptions = [
     { value: 'bg-teal-100', label: 'Teal' },
     { value: 'bg-amber-100', label: 'Amber' },
@@ -25,8 +28,21 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
     { value: 'bg-emerald-100', label: 'Emerald' },
     { value: 'bg-blue-100', label: 'Blue' },
   ];
-  
+
   const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Update form when initialData changes or modal opens
   useEffect(() => {
@@ -47,15 +63,15 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!name.trim()) {
+
+    if (!name.trim() || !user) {
       return;
     }
-    
+
     const tagArray = tags
       ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
       : undefined;
-    
+
     const newFriend: Friend = {
       id: initialData?.id || uuidv4(),
       name: name.trim(),
@@ -64,9 +80,10 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
       color: selectedColor,
       createdAt: initialData?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      userId: user.uid, // Include the user ID
     };
-    
-    await FriendStorage.addFriend(newFriend);
+
+    await FriendStorage.addItem(newFriend);
     onFriendAdded();
     resetForm();
     onClose();
@@ -89,7 +106,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
             required
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="contact-info">
             Contact Info (Optional)
@@ -103,7 +120,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
             className="w-full p-3 border rounded-md dark:bg-gray-700 focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="friend-tags">
             Tags (Optional)
@@ -120,7 +137,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
             Separate tags with commas
           </p>
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium mb-1">
             Color Theme
@@ -145,7 +162,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
             ))}
           </div>
         </div>
-        
+
         <div className="flex justify-end gap-3 pt-2">
           <button 
             type="button"

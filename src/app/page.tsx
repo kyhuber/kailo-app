@@ -9,6 +9,7 @@ import { DateStorage, ImportantDate } from '@/utils/dates_storage';
 import EmptyStateHome from '@/components/home/EmptyStateHome';
 import EarlyAdoptionHome from '@/components/home/EarlyAdoptionHome';
 import DashboardHome from '@/components/home/DashboardHome';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function HomePage() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -54,36 +55,31 @@ export default function HomePage() {
     loadData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6 text-center">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+  return (
+    <ProtectedRoute>
+      {loading ? (
+        <div className="container mx-auto p-6 text-center">
+          <div className="animate-pulse flex flex-col items-center gap-4">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  // Empty state (no friends added yet)
-  if (friends.length === 0) {
-    return <EmptyStateHome />;
-  }
-
-  // Early adoption state (1-2 friends)
-  if (friends.length <= 2) {
-    return <EarlyAdoptionHome 
-      friends={friends} 
-      pendingTasks={pendingTasks} 
-      upcomingDates={upcomingDates} 
-    />;
-  }
-
-  // Regular dashboard (3+ friends)
-  return <DashboardHome 
-    friends={friends} 
-    pendingTasks={pendingTasks} 
-    upcomingDates={upcomingDates} 
-  />;
+      ) : friends.length === 0 ? (
+        <EmptyStateHome />
+      ) : friends.length <= 2 ? (
+        <EarlyAdoptionHome 
+          friends={friends} 
+          pendingTasks={pendingTasks} 
+          upcomingDates={upcomingDates} 
+        />
+      ) : (
+        <DashboardHome 
+          friends={friends} 
+          pendingTasks={pendingTasks} 
+          upcomingDates={upcomingDates} 
+        />
+      )}
+    </ProtectedRoute>
+  );
 }

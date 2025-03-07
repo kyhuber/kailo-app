@@ -1,9 +1,9 @@
-// src/components/friends/detail/forms/AddTaskForm.tsx
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStorage } from '@/utils/tasks_storage';
 import Modal from '@/components/shared/Modal';
 import { Friend } from '@/utils/friends_storage';
 import Select from 'react-select';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 interface AddTaskFormProps {
   friendId?: string;
@@ -18,6 +18,20 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
   const [priority, setPriority] = useState<'Normal' | 'High'>('Normal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<{ value: string; label: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -30,16 +44,15 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
         setSelectedFriend({ value: initialFriend.id, label: initialFriend.name });
       }
     }
-  }, [isOpen, friendId, friends]); // Added friends to the dependency array
+  }, [isOpen, friendId, friends]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || content.trim() === '') return;
+    if (isSubmitting || content.trim() === '' || !user) return;
     setIsSubmitting(true);
 
     try {
       let actualFriendId = selectedFriend ? selectedFriend.value : null;
-      // If friendId was passed down, use it as a fallback
       if (!actualFriendId && friendId) {
         actualFriendId = friendId;
       }
@@ -55,8 +68,9 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
         priority,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        userId: user.uid, // Include the user ID
       };
-      await TaskStorage.addTask(newTask);
+      await TaskStorage.addItem(newTask);
       onTaskAdded(newTask);
       onClose();
     } catch (error) {

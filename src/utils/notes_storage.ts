@@ -9,6 +9,7 @@ export interface Note {
   status: ItemStatus;
   createdAt: string;
   updatedAt: string;
+  userId: string;
 }
 
 class NoteFirebaseStorage extends FirebaseStorage<Note> {
@@ -30,3 +31,5 @@ class NoteFirebaseStorage extends FirebaseStorage<Note> {
     return false;
   }
 }
+
+export const NoteStorage = new NoteFirebaseStorage();

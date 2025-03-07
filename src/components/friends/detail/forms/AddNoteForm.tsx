@@ -1,8 +1,8 @@
-// src/components/friends/detail/forms/AddNoteForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Note, NoteStorage } from '@/utils/notes_storage';
 import Modal from '@/components/shared/Modal';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 interface AddNoteFormProps {
   friendId: string;
@@ -13,10 +13,24 @@ interface AddNoteFormProps {
 
 export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose }: AddNoteFormProps) {
   const [content, setContent] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !user) return;
 
     const newNote: Note = {
       id: uuidv4(),
@@ -24,10 +38,11 @@ export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose }: 
       content,
       status: "Active",
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      userId: user.uid,
     };
 
-    await NoteStorage.addNote(newNote);
+    await NoteStorage.addItem(newNote);
     onNoteAdded(newNote);
     setContent('');
     onClose();
