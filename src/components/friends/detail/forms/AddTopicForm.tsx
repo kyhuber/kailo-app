@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Topic, TopicStorage } from '@/utils/topics_storage';
 import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import VoiceInputButton from '@/components/shared/VoiceInputButton';
 
 interface AddTopicFormProps {
   friendId: string;
@@ -39,7 +40,7 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
       status: "Active",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      userId: user.uid, // Include the user ID
+      userId: user.uid,
     };
 
     await TopicStorage.addItem(newTopic);
@@ -64,6 +65,9 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
             rows={4}
             required
           />
+          <div className="mt-2">
+            <VoiceInputButton targetInputId="note-content" />
+          </div>
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button 

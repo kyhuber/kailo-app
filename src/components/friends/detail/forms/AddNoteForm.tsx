@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Note, NoteStorage } from '@/utils/notes_storage';
 import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import VoiceInputButton from '@/components/shared/VoiceInputButton';
 
 interface AddNoteFormProps {
   friendId: string;
@@ -64,6 +65,9 @@ export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose }: 
             rows={4}
             required
           />
+          <div className="mt-2">
+            <VoiceInputButton targetInputId="note-content" />
+          </div>
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button 

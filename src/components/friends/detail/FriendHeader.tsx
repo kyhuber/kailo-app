@@ -1,4 +1,3 @@
-// src/components/friends/detail/FriendHeader.tsx
 import React from 'react';
 import { Friend } from '@/utils/friends_storage';
 
@@ -11,6 +10,15 @@ export default function FriendHeader({ friend }: FriendHeaderProps) {
     <div className={`p-6 rounded-lg shadow-md mb-6 ${
       friend.color || 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100'
     }`}>
+      {friend.photoUrl && (
+        <div className="mb-4">
+          <img 
+            src={friend.photoUrl} 
+            alt={`${friend.name}'s photo`} 
+            className="w-32 h-32 rounded-full object-cover mx-auto"
+          />
+        </div>
+      )}
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
         {friend.name}
       </h1>
