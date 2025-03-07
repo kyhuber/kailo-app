@@ -13,7 +13,7 @@ interface ManageableItemListProps<T extends { id: string; status?: ItemStatus; u
   setItems: React.Dispatch<React.SetStateAction<T[]>>;
   CardComponent: React.ComponentType<{ item: T, onArchive?: (id: string) => void, onRestore?: (id: string) => void, isArchived?: boolean, isCompleted?: boolean, onComplete?: (id: string) => void, onReopen?: (id: string) => void }>;
   AddFormComponent: React.ComponentType<{ isOpen: boolean, onClose: () => void, onAdded: (item: T) => void }>;
-  onUpdateStatus: (id: string, status: ItemStatus) => Promise<void>;
+  onUpdateStatus: (id: string, status: ItemStatus) => Promise<boolean | void>;
   emptyMessage: string;
   isCompletedList?: boolean;
   pendingSort?: (a: T, b: T) => number;

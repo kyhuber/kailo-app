@@ -38,8 +38,14 @@ export default function FriendOverviewTab({ notes, topics, tasks, dates, setActi
         {activeNotes.length > 0 ? (
           <>
             {activeNotes.slice(0, 3).map(note => (
-              <div key={note.id} className="mb-3 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+              <div key={note.id} className="mb-3 p-3 bg-gray-50 dark:bg-gray-700 rounded flex justify-between">
                 <p>{note.content}</p>
+                <button
+                  onClick={() => setActiveTab('notes')}
+                  className="text-blue-500 text-xs px-2 py-1 rounded"
+                >
+                  View
+                </button>
               </div>
             ))}
             <button

@@ -6,10 +6,11 @@ interface NoteCardProps {
   note: Note;
   onArchive?: (id: string) => void;
   onRestore?: (id: string) => void;
+  onEdit?: () => void;
   isArchived?: boolean;
 }
 
-export default function NoteCard({ note, onArchive, onRestore, isArchived = false }: NoteCardProps) {
+export default function NoteCard({ note, onArchive, onRestore, onEdit, isArchived = false }: NoteCardProps) {
   const dateToShow = isArchived ? note.updatedAt : note.createdAt;
   
   return (
@@ -22,22 +23,32 @@ export default function NoteCard({ note, onArchive, onRestore, isArchived = fals
           {isArchived ? 'Archived' : 'Added'} on {new Date(dateToShow).toLocaleDateString()}
         </p>
       </div>
-      {onArchive && !isArchived && (
-        <button 
-          onClick={() => onArchive(note.id)}
-          className="text-gray-500 hover:text-gray-700"
-        >
-          Archive
-        </button>
-      )}
-      {onRestore && isArchived && (
-        <button 
-          onClick={() => onRestore(note.id)}
-          className="text-blue-500 hover:text-blue-700"
-        >
-          Restore
-        </button>
-      )}
+      <div className="flex gap-2">
+        {onEdit && !isArchived && (
+          <button 
+            onClick={onEdit}
+            className="text-blue-500 hover:text-blue-700 px-2"
+          >
+            Edit
+          </button>
+        )}
+        {onArchive && !isArchived && (
+          <button 
+            onClick={() => onArchive(note.id)}
+            className="text-gray-500 hover:text-gray-700 px-2"
+          >
+            Archive
+          </button>
+        )}
+        {onRestore && isArchived && (
+          <button 
+            onClick={() => onRestore(note.id)}
+            className="text-blue-500 hover:text-blue-700 px-2"
+          >
+            Restore
+          </button>
+        )}
+      </div>
     </div>
   );
 }

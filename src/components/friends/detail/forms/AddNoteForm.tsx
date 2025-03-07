@@ -1,3 +1,4 @@
+// src/components/friends/detail/forms/AddNoteForm.tsx
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Note, NoteStorage } from '@/utils/notes_storage';
@@ -10,9 +11,10 @@ interface AddNoteFormProps {
   onNoteAdded: (note: Note) => void;
   isOpen: boolean;
   onClose: () => void;
+  initialData?: Note;
 }
 
-export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose }: AddNoteFormProps) {
+export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose, initialData }: AddNoteFormProps) {
   const [content, setContent] = useState('');
   const [user, setUser] = useState<User | null>(null);
 
@@ -29,28 +31,50 @@ export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose }: 
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (initialData) {
+      setContent(initialData.content);
+    } else {
+      setContent('');
+    }
+  }, [initialData, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || !user) return;
 
-    const newNote: Note = {
-      id: uuidv4(),
-      friendId,
-      content,
-      status: "Active",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: user.uid,
-    };
+    if (initialData) {
+      // Updating existing note
+      const updatedNote: Note = {
+        ...initialData,
+        content,
+        updatedAt: new Date().toISOString(),
+      };
 
-    await NoteStorage.addItem(newNote);
-    onNoteAdded(newNote);
+      await NoteStorage.updateItem(updatedNote);
+      onNoteAdded(updatedNote);
+    } else {
+      // Creating new note
+      const newNote: Note = {
+        id: uuidv4(),
+        friendId,
+        content,
+        status: "Active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userId: user.uid,
+      };
+
+      await NoteStorage.addItem(newNote);
+      onNoteAdded(newNote);
+    }
+    
     setContent('');
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add a New Note">
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Note" : "Add a New Note"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="note-content">
@@ -84,7 +108,7 @@ export default function AddNoteForm({ friendId, onNoteAdded, isOpen, onClose }: 
             type="submit"
             className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            Save Note
+            {initialData ? "Save Changes" : "Save Note"}
           </button>
         </div>
       </form>

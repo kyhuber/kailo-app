@@ -45,7 +45,7 @@ export default function FriendsPage() {
   }, []);
 
   const handleDeleteFriend = async (id: string) => {
-    if (confirm('Are you sure you want to delete this friend?')) {
+    if (confirm('Are you sure you want to remove this friend?')) {
       await FriendStorage.deleteItem(id);
       setFriends(friends.filter((friend) => friend.id !== id));
     }

@@ -1,9 +1,8 @@
 // src/components/FriendCard.tsx
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { Friend } from '@/utils/friends_storage';
+import { FiEdit2 } from 'react-icons/fi';
 
 interface FriendCardProps {
   friend: Friend;
@@ -13,7 +12,7 @@ interface FriendCardProps {
   upcomingDatesCount?: number;
 }
 
-export default function FriendCard({ friend, onDelete, onEdit, pendingTasksCount = 0, upcomingDatesCount = 0 }: FriendCardProps) {
+export default function FriendCard({ friend, onEdit, pendingTasksCount = 0, upcomingDatesCount = 0 }: FriendCardProps) {
   // Generate initials for the avatar
   const initials = friend.name
     .split(' ')
@@ -38,6 +37,19 @@ export default function FriendCard({ friend, onDelete, onEdit, pendingTasksCount
     <Link href={`/friends/${friend.id}`} className="block transition transform hover:-translate-y-1 hover:shadow-lg">
       <div className="bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className={`p-5 relative`}>
+          {/* Edit Button in Top Right */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit(friend);
+            }}
+            className="absolute top-3 right-3 p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Edit friend"
+          >
+            <FiEdit2 size={16} />
+          </button>
+          
           {/* Avatar with Photo or Initials */}
           <div className="flex items-center mb-3">
             {friend.photoUrl ? (
@@ -91,30 +103,6 @@ export default function FriendCard({ friend, onDelete, onEdit, pendingTasksCount
               </span>
             </div>
           </div>
-        </div>
-
-        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex justify-between">
-          <button
-            onClick={(e) => {
-              e.preventDefault(); // Prevent navigation
-              e.stopPropagation(); // Prevent event bubbling
-              onEdit(friend);
-            }}
-            className="text-blue-500 hover:text-blue-700 text-sm font-medium transition-colors"
-          >
-            Edit
-          </button>
-          
-          <button
-            onClick={(e) => {
-              e.preventDefault(); // Prevent navigation
-              e.stopPropagation(); // Prevent event bubbling
-              onDelete(friend.id);
-            }}
-            className="text-rose-500 hover:text-rose-700 text-sm font-medium transition-colors"
-          >
-            Delete
-          </button>
         </div>
       </div>
     </Link>

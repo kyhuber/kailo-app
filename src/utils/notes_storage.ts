@@ -21,14 +21,13 @@ class NoteFirebaseStorage extends FirebaseStorage<Note> {
     return this.queryByField('friendId', friendId);
   }
 
-  async updateNoteStatus(id: string, status: ItemStatus): Promise<boolean> {
+  async updateNoteStatus(id: string, status: ItemStatus): Promise<void> {
     const note = await this.getById(id);
     if (note) {
       note.status = status;
       note.updatedAt = new Date().toISOString();
-      return this.updateItem(note);
+      await this.updateItem(note);
     }
-    return false;
   }
 }
 
