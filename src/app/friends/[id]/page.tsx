@@ -59,11 +59,11 @@ export default function FriendDetailPage() {
     async function fetchFriendData() {
       try {
         setLoading(true);
-        const friendData = await FriendStorage.getFriend(friendId);
+        const friendData = await FriendStorage.getById(friendId);
         if (friendData) {
           if (!friendData.color || !friendData.color.includes('text-')) {
             friendData.color = getRandomColor();
-            await FriendStorage.updateFriend(friendData);
+            await FriendStorage.updateItem(friendData);
           }
           setFriend(friendData);
         } else {

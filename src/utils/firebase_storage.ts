@@ -13,6 +13,11 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ItemStatus } from '@/types/shared';
 
+// Utility function to remove undefined values from an object
+const removeUndefinedValues = (obj: any) => {
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+};
+
 // Base class for all Firebase storage
 export class FirebaseStorage<T extends { id: string }> {
   protected collectionName: string;

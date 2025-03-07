@@ -4,6 +4,7 @@ import Modal from '@/components/shared/Modal';
 import { Friend } from '@/utils/friends_storage';
 import Select from 'react-select';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import VoiceInputButton from '@/components/shared/VoiceInputButton';
 
 interface AddTaskFormProps {
   friendId?: string;
@@ -121,6 +122,9 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
               onChange={(e) => setContent(e.target.value)}
               required
             />
+            <div className="mt-2">
+              <VoiceInputButton targetInputId="content" onTextChange={setContent} />
+            </div>
           </div>
         </div>
 

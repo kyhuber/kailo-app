@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
 
-// Add type declaration for SpeechRecognition
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -13,19 +14,33 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface SpeechRecognitionEvent extends Event {
-  results: {
-    isFinal: boolean;
-    [index: number]: {
-      transcript: string;
-    };
-  }[];
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  isFinal: boolean;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
 }
 
 interface VoiceInputButtonProps {
   targetInputId: string;
+  onTextChange: (text: string) => void;
 }
 
-export default function VoiceInputButton({ targetInputId }: VoiceInputButtonProps) {
+export default function VoiceInputButton({ targetInputId, onTextChange }: VoiceInputButtonProps) {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
@@ -53,11 +68,12 @@ export default function VoiceInputButton({ targetInputId }: VoiceInputButtonProp
       const targetInput = document.getElementById(targetInputId) as HTMLInputElement;
       if (targetInput) {
         targetInput.value = transcript;
+        onTextChange(transcript); // Update the state in the parent component
       }
     };
 
     setRecognition(speechRecognition);
-  }, [targetInputId]);
+  }, [targetInputId, onTextChange]);
 
   const handleButtonClick = () => {
     if (isListening) {
@@ -70,8 +86,9 @@ export default function VoiceInputButton({ targetInputId }: VoiceInputButtonProp
   return (
     <button
       onClick={handleButtonClick}
-      className={`px-4 py-2 rounded-md text-white ${isListening ? 'bg-red-600' : 'bg-blue-600'} hover:bg-blue-700`}
+      className={`px-4 py-2 rounded-md text-white flex items-center gap-2 ${isListening ? 'bg-red-600' : 'bg-blue-600'} hover:bg-blue-700`}
     >
+      <FontAwesomeIcon icon={isListening ? faMicrophoneSlash : faMicrophone} />
       {isListening ? 'Stop Listening' : 'Start Listening'}
     </button>
   );

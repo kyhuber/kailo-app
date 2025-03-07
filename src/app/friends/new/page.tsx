@@ -21,8 +21,9 @@ export default function AddFriendPage() {
       tags: tags ? tags.split(',').map(tag => tag.trim()) : undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      userId: 'someUserId', // Replace 'someUserId' with the actual user ID
     };
-    await FriendStorage.addFriend(newFriend);
+    await FriendStorage.addItem(newFriend);
     router.push('/friends');
   };
 
