@@ -1,3 +1,5 @@
+// src/app/tasks/new/page.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -6,6 +8,7 @@ import { TaskStorage } from '@/utils/tasks_storage';
 import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { useEffect } from 'react';
+import { getAuth } from 'firebase/auth';
 import Link from 'next/link';
 
 export default function NewTaskPage() {
@@ -43,6 +46,14 @@ export default function NewTaskPage() {
       return;
     }
 
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        alert('You must be logged in to add a date');
+        return;
+      }
+
     const newTask = {
       id: uuidv4(),
       friendId,
@@ -50,7 +61,8 @@ export default function NewTaskPage() {
       status: 'Pending' as const,
       priority,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      userId: user.uid
     };
 
     try {

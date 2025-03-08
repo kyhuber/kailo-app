@@ -1,3 +1,4 @@
+// src/app/dates/new/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { DateStorage } from '@/utils/dates_storage';
 import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
+import { getAuth } from 'firebase/auth';
 import Link from 'next/link';
 
 export default function NewDatePage() {
@@ -44,6 +46,14 @@ export default function NewDatePage() {
       return;
     }
 
+    const auth = getAuth();
+    const user = auth.currentUser;
+    
+    if (!user) {
+      alert('You must be logged in to add a date');
+      return;
+    }
+
     const newDate = {
       id: uuidv4(),
       friendId,
@@ -52,11 +62,12 @@ export default function NewDatePage() {
       type,
       description: description.trim() || undefined,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      userId: user.uid
     };
 
     try {
-      await DateStorage.addDate(newDate);
+      await DateStorage.addItem(newDate);
       router.push('/calendar');
     } catch (error) {
       console.error('Error saving date:', error);
