@@ -76,7 +76,7 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
   const handleStatusChange = async (taskId: string, status: string) => {
     await TaskStorage.updateTaskStatus(taskId, status as ItemStatus);
     const updatedAt = new Date().toISOString();
-    let updatedTask: Partial<Task> = { status: status as ItemStatus, updatedAt };
+    const updatedTask: Partial<Task> = { status: status as ItemStatus, updatedAt };
     
     if (status === 'Complete') {
       updatedTask.completedAt = updatedAt;

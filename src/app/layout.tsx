@@ -12,7 +12,7 @@ const NavBar = dynamic(() => import('../components/layout/NavBar'), { ssr: false
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { currentUser, loading } = useAuth();
+  const { currentUser } = useAuth();
   
   const showNavBar = !pathname?.includes('/login') && currentUser;
 

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Friend } from '@/utils/friends_storage';
 import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import SummaryCard from './SummaryCard';
-import ItemDetailModal from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, {GenericItem} from '@/components/shared/ItemDetailModal';
 
 interface DashboardHomeProps {
   friends: Friend[];
@@ -25,8 +25,7 @@ export default function DashboardHome({ friends, pendingTasks, upcomingDates }: 
   });
   
   // Handler for date updates
-  const handleUpdateDate = (updatedItem: any) => {
-    // We need to cast the generic item back to ImportantDate
+  const handleUpdateDate = (updatedItem: GenericItem) => {
     const updatedDate = updatedItem as ImportantDate;
     DateStorage.updateDate(updatedDate);
     // If you need to refresh the UI, add that logic here

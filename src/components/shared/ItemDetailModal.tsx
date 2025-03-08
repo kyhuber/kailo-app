@@ -1,7 +1,6 @@
 // src/components/shared/ItemDetailModal.tsx
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { ItemStatus } from '@/types/shared';
 import { Note } from '@/utils/notes_storage';
 import { Topic } from '@/utils/topics_storage';
 import { Task } from '@/utils/tasks_storage';

@@ -52,7 +52,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
      setTags(initialData?.tags?.join(', ') || '');
      setSelectedColor(initialData?.color || colorOptions[0].value);
    }
- }, [isOpen, initialData]);
+ }, [isOpen, initialData, colorOptions]);
 
  const resetForm = () => {
    setName('');
