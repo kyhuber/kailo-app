@@ -1,7 +1,8 @@
+// src/components/friends/detail/forms/AddTaskForm.tsx
 import React, { useState, useEffect } from 'react';
 import { Task, TaskStorage } from '@/utils/tasks_storage';
 import Modal from '@/components/shared/Modal';
-import { Friend } from '@/utils/friends_storage';
+import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Select from 'react-select';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import VoiceInputButton from '@/components/shared/VoiceInputButton';
@@ -15,12 +16,13 @@ interface AddTaskFormProps {
   initialData?: Task;
 }
 
-export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, friends }: AddTaskFormProps) {
+export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, friends, initialData }: AddTaskFormProps) {
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState<'Normal' | 'High'>('Normal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<{ value: string; label: string } | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [allFriends, setAllFriends] = useState<Friend[]>([]);
 
   useEffect(() => {
     const auth = getAuth();
@@ -35,18 +37,52 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
     return () => unsubscribe();
   }, []);
 
+  // Load friends data if not provided
   useEffect(() => {
-    if (!isOpen) {
+    if (!friends && isOpen) {
+      const loadFriends = async () => {
+        try {
+          const fetchedFriends = await FriendStorage.getAll();
+          setAllFriends(fetchedFriends);
+        } catch (error) {
+          console.error("Error loading friends:", error);
+        }
+      };
+      loadFriends();
+    }
+  }, [friends, isOpen]);
+
+  // Set initial data when the modal opens or initialData changes
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setContent(initialData.content);
+      setPriority(initialData.priority);
+      
+      // If we have friendId from initialData, set the selected friend
+      if (initialData.friendId) {
+        const actualFriends = friends || allFriends;
+        const friend = actualFriends.find(f => f.id === initialData.friendId);
+        if (friend) {
+          setSelectedFriend({ value: friend.id, label: friend.name });
+        }
+      }
+    } else if (isOpen) {
+      // Reset form when opening without initial data
       setContent('');
       setPriority('Normal');
-      setSelectedFriend(null);
-    } else if (friendId && friends) {
-      const initialFriend = friends.find((friend) => friend.id === friendId);
-      if (initialFriend) {
-        setSelectedFriend({ value: initialFriend.id, label: initialFriend.name });
+      
+      // Set the selected friend if friendId is provided
+      if (friendId) {
+        const actualFriends = friends || allFriends;
+        const friend = actualFriends.find(f => f.id === friendId);
+        if (friend) {
+          setSelectedFriend({ value: friend.id, label: friend.name });
+        }
+      } else {
+        setSelectedFriend(null);
       }
     }
-  }, [isOpen, friendId, friends]);
+  }, [initialData, isOpen, friendId, friends, allFriends]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +90,7 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
     setIsSubmitting(true);
 
     try {
+      // Determine the friend ID to use
       let actualFriendId = selectedFriend ? selectedFriend.value : null;
       if (!actualFriendId && friendId) {
         actualFriendId = friendId;
@@ -62,36 +99,50 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
         throw new Error("Must select a friend when adding a task");
       }
 
-      const newTask: Task = {
-        id: crypto.randomUUID(),
-        friendId: actualFriendId,
-        content,
-        status: 'Pending',
-        priority,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        userId: user.uid, // Include the user ID
-      };
-      await TaskStorage.addItem(newTask);
-      onTaskAdded(newTask);
+      if (initialData) {
+        // Update existing task
+        const updatedTask: Task = {
+          ...initialData,
+          friendId: actualFriendId,
+          content: content.trim(),
+          priority,
+          updatedAt: new Date().toISOString(),
+        };
+        await TaskStorage.updateItem(updatedTask);
+        onTaskAdded(updatedTask);
+      } else {
+        // Create new task
+        const newTask: Task = {
+          id: crypto.randomUUID(),
+          friendId: actualFriendId,
+          content: content.trim(),
+          status: 'Pending',
+          priority,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: user.uid,
+        };
+        await TaskStorage.addItem(newTask);
+        onTaskAdded(newTask);
+      }
       onClose();
     } catch (error) {
-      console.error('Error adding task:', error);
+      console.error('Error adding/updating task:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const friendOptions = friends?.map((friend) => ({
+  const actualFriends = friends || allFriends;
+  const friendOptions = actualFriends.map((friend) => ({
     value: friend.id,
     label: friend.name,
-  })) || [];
+  }));
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Task">
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Task" : "Add Task"}>
       <form onSubmit={handleSubmit} className="space-y-4">
-
-        {/* Friend Select */}
+        {/* Friend Select - Only show if friendId is not provided */}
         {!friendId && (
           <div>
             <label htmlFor="friend" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -158,7 +209,7 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
             disabled={isSubmitting || content.trim() === ''}
             className={`inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 ${isSubmitting || content.trim() === '' ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isSubmitting ? 'Saving...' : 'Save'}
+            {isSubmitting ? 'Saving...' : initialData ? 'Update Task' : 'Save Task'}
           </button>
         </div>
       </form>

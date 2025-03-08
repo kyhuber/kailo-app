@@ -5,7 +5,7 @@ import { ItemStatus } from '@/types/shared';
 import AddDateForm from '../forms/AddDateForm';
 import ManageableItemList from '@/components/shared/ManageableItemList';
 import DateCard from '../cards/DateCard';
-import ItemDetailModal, { GenericItem} from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, { GenericItem } from '@/components/shared/ItemDetailModal';
 
 interface FriendDatesTabProps {
   friendId: string;
@@ -55,7 +55,9 @@ export default function FriendDatesTab({ friendId, dates, setDates }: FriendDate
         CardComponent={({ item }) => (
           <DateCard 
             item={item} 
-            onDateUpdated={handleUpdateDate}
+            onDateUpdated={(date) => {
+              setDates(prev => prev.map(d => d.id === date.id ? date : d));
+            }}
             onClick={(date) => setSelectedDate(date)}
           />
         )}

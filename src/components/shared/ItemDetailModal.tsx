@@ -11,6 +11,7 @@ import AddTopicForm from '@/components/friends/detail/forms/AddTopicForm';
 import AddTaskForm from '@/components/friends/detail/forms/AddTaskForm';
 import AddDateForm from '@/components/friends/detail/forms/AddDateForm';
 import ConfirmModal from './ConfirmModal';
+import { FiEdit2 } from 'react-icons/fi';
 
 type ItemType = 'note' | 'topic' | 'task' | 'date';
 export type GenericItem = Note | Topic | Task | ImportantDate;
@@ -22,7 +23,7 @@ interface ItemDetailModalProps {
   itemType: ItemType;
   onDelete: (id: string) => void;
   onUpdate: (item: GenericItem) => void;
-  onStatusChange?: (id: string, status: ItemStatus) => void;
+  onStatusChange?: (id: string, status: string) => void;
   friendId: string;
 }
 
@@ -60,160 +61,22 @@ export default function ItemDetailModal({
     setIsEditing(false);
   };
   
-  const handleStatusChange = (status: ItemStatus) => {
+  const handleStatusChange = (status: string) => {
     if (onStatusChange) {
       onStatusChange(item.id, status);
     }
   };
-
-  const renderActionButtons = () => {
-    const status = 'status' in item ? item.status as ItemStatus : undefined;
-    
-    return (
-      <div className="flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-        {/* Status change buttons for tasks */}
-        {itemType === 'task' && status === 'Pending' && (
-          <button
-            onClick={() => handleStatusChange('Complete')}
-            className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600"
-          >
-            Complete
-          </button>
-        )}
-        
-        {itemType === 'task' && status === 'Complete' && (
-          <button
-            onClick={() => handleStatusChange('Pending')}
-            className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
-          >
-            Reopen
-          </button>
-        )}
-        
-        <Modal isOpen={isOpen} onClose={onClose} title={getModalTitle()}>
-          {isEditing ? renderEditForm() : renderContent()}
-          {!isEditing && renderActionButtons()}
-        </Modal>
-
-        <ConfirmModal
-          isOpen={isConfirmDeleteOpen}
-          onClose={() => setIsConfirmDeleteOpen(false)}
-          onConfirm={confirmDelete}
-          title="Delete Item"
-          message="Are you sure you want to delete this item? This action cannot be undone."
-        />
-
-
-        {/* Archive/Restore buttons for all items */}
-        {(status === 'Active' || status === 'Pending' || status === 'Complete') && (
-          <button
-            onClick={() => handleStatusChange('Archived')}
-            className="px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500"
-          >
-            Archive
-          </button>
-        )}
-        
-        {status === 'Archived' && (
-          <button
-            onClick={() => handleStatusChange('Active')}
-            className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
-            Restore
-          </button>
-        )}
-        
-        {/* Edit and Delete buttons */}
-        <button
-          onClick={handleEdit}
-          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
-          Edit
-        </button>
-        
-        <button
-          onClick={handleDelete}
-          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
-        >
-          Delete
-        </button>
-      </div>
-    );
-  };
   
-  const getModalTitle = () => {
-    switch (itemType) {
-      case 'note':
-        return 'Note Details';
-      case 'topic':
-        return 'Topic Details';
-      case 'task':
-        return 'Task Details';
-      case 'date':
-        return 'Date Details';
-      default:
-        return 'Item Details';
-    }
-  };
-  
-  const renderEditForm = () => {
-    switch (itemType) {
-      case 'note':
-        return (
-          <AddNoteForm
-            friendId={friendId}
-            isOpen={true}
-            onClose={() => setIsEditing(false)}
-            onNoteAdded={handleUpdate as (note: Note) => void}
-            initialData={item as Note}
-          />
-        );
-      case 'topic':
-        return (
-          <AddTopicForm
-            friendId={friendId}
-            isOpen={true}
-            onClose={() => setIsEditing(false)}
-            onTopicAdded={handleUpdate as (topic: Topic) => void}
-            initialData={item as Topic}
-          />
-        );
-      case 'task':
-        return (
-          <AddTaskForm
-            friendId={friendId}
-            isOpen={true}
-            onClose={() => setIsEditing(false)}
-            onTaskAdded={handleUpdate as (task: Task) => void}
-            initialData={item as Task}
-          />
-        );
-      case 'date':
-        return (
-          <AddDateForm
-            friendId={friendId}
-            isOpen={true}
-            onClose={() => setIsEditing(false)}
-            onDateAdded={handleUpdate as (date: ImportantDate) => void}
-            initialData={item as ImportantDate}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const renderContent = (): React.ReactNode => {
-    const content = 'content' in item ? (item as Note | Topic | Task).content : '';
-    const title = 'title' in item ? (item as ImportantDate).title : '';
-    const description = 'description' in item ? (item as ImportantDate).description : '';
-    const date = 'date' in item ? new Date((item as ImportantDate).date).toLocaleDateString() : '';
-    const endDate = 'endDate' in item && (item as ImportantDate).endDate 
-      ? new Date((item as ImportantDate).endDate!).toLocaleDateString() 
-      : '';
-    const type = 'type' in item ? (item as ImportantDate).type : '';
-    const priority = 'priority' in item ? (item as Task).priority : '';
-    const status = 'status' in item ? (item as Note | Topic | Task).status : '';
+  const renderContent = () => {
+    // Check if content property exists
+    const content = 'content' in item ? item.content : '';
+    const title = 'title' in item ? item.title : '';
+    const description = 'description' in item ? item.description : '';
+    const date = 'date' in item ? new Date(item.date).toLocaleDateString() : '';
+    const endDate = 'endDate' in item && item.endDate ? new Date(item.endDate).toLocaleDateString() : '';
+    const type = 'type' in item ? item.type : '';
+    const priority = 'priority' in item ? item.priority : '';
+    const status = 'status' in item ? item.status : '';
     
     const updatedAtDisplay = new Date(item.updatedAt).toLocaleDateString();
     const createdAtDisplay = 'createdAt' in item ? new Date(item.createdAt).toLocaleDateString() : '';
@@ -289,4 +152,152 @@ export default function ItemDetailModal({
         </div>
       </div>
     );
-  }}
+  };
+  
+  const renderActionButtons = () => {
+    const status = 'status' in item ? item.status : '';
+    
+    return (
+      <div className="flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+        {/* Status change buttons for tasks */}
+        {itemType === 'task' && status === 'Pending' && (
+          <button
+            onClick={() => handleStatusChange('Complete')}
+            className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600"
+          >
+            Complete
+          </button>
+        )}
+        
+        {itemType === 'task' && status === 'Complete' && (
+          <button
+            onClick={() => handleStatusChange('Pending')}
+            className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+          >
+            Reopen
+          </button>
+        )}
+        
+        {/* Archive/Restore buttons for all items */}
+        {status === 'Active' || status === 'Pending' || status === 'Complete' ? (
+          <button
+            onClick={() => handleStatusChange('Archived')}
+            className="px-3 py-1 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500"
+          >
+            Archive
+          </button>
+        ) : status === 'Archived' ? (
+          <button
+            onClick={() => handleStatusChange('Active')}
+            className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Restore
+          </button>
+        ) : null}
+        
+        {/* Edit button with pencil icon */}
+        <button
+          onClick={handleEdit}
+          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
+        >
+          <FiEdit2 className="mr-1" size={16} /> Edit
+        </button>
+        
+        {/* Delete button */}
+        <button
+          onClick={handleDelete}
+          className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+        >
+          Delete
+        </button>
+      </div>
+    );
+  };
+  
+  const getModalTitle = () => {
+    switch (itemType) {
+      case 'note':
+        return 'Note Details';
+      case 'topic':
+        return 'Topic Details';
+      case 'task':
+        return 'Task Details';
+      case 'date':
+        return 'Date Details';
+      default:
+        return 'Item Details';
+    }
+  };
+
+  // Render the appropriate edit form modal
+  if (isEditing) {
+    switch (itemType) {
+      case 'note':
+        return (
+          <AddNoteForm
+            friendId={friendId}
+            isOpen={true}
+            onClose={() => setIsEditing(false)}
+            onNoteAdded={handleUpdate as (note: Note) => void}
+            initialData={item as Note}
+          />
+        );
+      case 'topic':
+        return (
+          <AddTopicForm
+            friendId={friendId}
+            isOpen={true}
+            onClose={() => setIsEditing(false)}
+            onTopicAdded={handleUpdate as (topic: Topic) => void}
+            initialData={item as Topic}
+          />
+        );
+      case 'task':
+        return (
+          <AddTaskForm
+            friendId={friendId}
+            isOpen={true}
+            onClose={() => setIsEditing(false)}
+            onTaskAdded={handleUpdate as (task: Task) => void}
+            initialData={item as Task}
+          />
+        );
+      case 'date':
+        return (
+          <AddDateForm
+            friendId={friendId}
+            isOpen={true}
+            onClose={() => setIsEditing(false)}
+            onDateAdded={handleUpdate as (date: ImportantDate) => void}
+            initialData={item as ImportantDate}
+          />
+        );
+      default:
+        return null;
+    }
+  }
+  
+  return (
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={getModalTitle()}
+        size="md"
+      >
+        {renderContent()}
+        {renderActionButtons()}
+      </Modal>
+      
+      <ConfirmModal
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        onConfirm={confirmDelete}
+        title={`Delete ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`}
+        message={`Are you sure you want to delete this ${itemType}? This action cannot be undone.`}
+        confirmButtonText="Delete"
+        variant="danger"
+      />
+    </>
+  );
+}

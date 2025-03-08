@@ -49,11 +49,11 @@ export default function FriendDetailPage() {
   const [dates, setDates] = useState<ImportantDate[]>([]);
   const [loading, setLoading] = useState(true);
 
-    // Modal states
-    const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
-    const [isAddTopicModalOpen, setIsAddTopicModalOpen] = useState(false);
-    const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
-    const [isAddDateModalOpen, setIsAddDateModalOpen] = useState(false);
+  // Modal states
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
+  const [isAddTopicModalOpen, setIsAddTopicModalOpen] = useState(false);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isAddDateModalOpen, setIsAddDateModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchFriendData() {
@@ -127,6 +127,26 @@ export default function FriendDetailPage() {
       }
   }
 
+  const handleUpdateNote = async (updatedNote: Note) => {
+    await NoteStorage.updateItem(updatedNote);
+    setNotes(notes.map(note => note.id === updatedNote.id ? updatedNote : note));
+  };
+
+  const handleUpdateTopic = async (updatedTopic: Topic) => {
+    await TopicStorage.updateItem(updatedTopic);
+    setTopics(topics.map(topic => topic.id === updatedTopic.id ? updatedTopic : topic));
+  };
+
+  const handleUpdateTask = async (updatedTask: Task) => {
+    await TaskStorage.updateItem(updatedTask);
+    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+  };
+
+  const handleUpdateDate = async (updatedDate: ImportantDate) => {
+    await DateStorage.updateDate(updatedDate);
+    setDates(dates.map(date => date.id === updatedDate.id ? updatedDate : date));
+  };
+
   if (loading || !friend) {
     return <div className="container mx-auto p-6 flex justify-center">Loading...</div>;
   }
@@ -145,8 +165,13 @@ export default function FriendDetailPage() {
           topics={topics}
           tasks={tasks}
           dates={dates}
+          friendId={friendId}
           setActiveTab={setActiveTab}
-          onOpenModal={handleOpenModal} 
+          onOpenModal={handleOpenModal}
+          onUpdateNote={handleUpdateNote}
+          onUpdateTopic={handleUpdateTopic}
+          onUpdateTask={handleUpdateTask}
+          onUpdateDate={handleUpdateDate}
         />
       )}
 

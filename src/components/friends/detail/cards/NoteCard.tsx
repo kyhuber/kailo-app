@@ -1,6 +1,7 @@
 // src/components/friends/detail/cards/NoteCard.tsx
 import React from 'react';
 import { Note } from '@/utils/notes_storage';
+import { FiEdit2 } from 'react-icons/fi';
 
 interface NoteCardProps {
   note: Note;
@@ -37,15 +38,21 @@ export default function NoteCard({
       <div className="flex gap-2">
         {onEdit && !isArchived && (
           <button 
-            onClick={onEdit}
-            className="text-blue-500 hover:text-blue-700 px-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="text-blue-500 hover:text-blue-700 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            Edit
+            <FiEdit2 size={16} />
           </button>
         )}
         {onArchive && !isArchived && (
           <button 
-            onClick={() => onArchive(note.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onArchive(note.id);
+            }}
             className="text-gray-500 hover:text-gray-700 px-2"
           >
             Archive
@@ -53,7 +60,10 @@ export default function NoteCard({
         )}
         {onRestore && isArchived && (
           <button 
-            onClick={() => onRestore(note.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRestore(note.id);
+            }}
             className="text-blue-500 hover:text-blue-700 px-2"
           >
             Restore

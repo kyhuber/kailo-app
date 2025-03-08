@@ -5,7 +5,7 @@ import { Topic, TopicStorage } from '@/utils/topics_storage';
 import TopicCard from '../cards/TopicCard';
 import AddTopicForm from '../forms/AddTopicForm';
 import ManageableItemList from '@/components/shared/ManageableItemList';
-import ItemDetailModal, { GenericItem} from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, { GenericItem } from '@/components/shared/ItemDetailModal';
 
 interface FriendTopicsTabProps {
   friendId: string;
@@ -16,8 +16,8 @@ interface FriendTopicsTabProps {
 export default function FriendTopicsTab({ friendId, topics, setTopics }: FriendTopicsTabProps) {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
-  const handleTopicUpdated = (updatedTopic: Topic | GenericItem) => {
-    setTopics(prev => prev.map(topic => topic.id === updatedTopic.id ? updatedTopic : topic));
+  const handleTopicUpdated = (updatedTopic: GenericItem) => {
+    setTopics(prev => prev.map(topic => topic.id === updatedTopic.id ? updatedTopic as Topic : topic));
     setSelectedTopic(null);
   };
 
@@ -74,7 +74,7 @@ export default function FriendTopicsTab({ friendId, topics, setTopics }: FriendT
         item={selectedTopic}
         itemType="topic"
         onDelete={handleDeleteTopic}
-        onUpdate={(item) => handleTopicUpdated(item as Topic)}
+        onUpdate={handleTopicUpdated}
         onStatusChange={handleStatusChange}
         friendId={friendId}
       />

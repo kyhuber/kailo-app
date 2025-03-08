@@ -5,7 +5,7 @@ import { ItemStatus } from '@/types/shared';
 import TopicCard from '../cards/TopicCard';
 import AddTaskForm from '../forms/AddTaskForm';
 import ConfirmModal from '@/components/shared/ConfirmModal';
-import ItemDetailModal from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, { GenericItem } from '@/components/shared/ItemDetailModal';
 
 interface FriendTasksTabProps {
   friendId: string;
@@ -30,8 +30,8 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
     setTasks(prev => [...prev, newTask]);
   };
 
-  const handleTaskUpdated = (updatedTask: Task) => {
-    setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
+  const handleTaskUpdated = (updatedTask: GenericItem) => {
+    setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask as Task : task));
     setSelectedTask(null);
   };
 
@@ -74,9 +74,9 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
   };
 
   const handleStatusChange = async (taskId: string, status: string) => {
-    await TaskStorage.updateTaskStatus(taskId, status as any);
+    await TaskStorage.updateTaskStatus(taskId, status as ItemStatus);
     const updatedAt = new Date().toISOString();
-    let updatedTask: Partial<Task> = { status: status as any, updatedAt };
+    let updatedTask: Partial<Task> = { status: status as ItemStatus, updatedAt };
     
     if (status === 'Complete') {
       updatedTask.completedAt = updatedAt;

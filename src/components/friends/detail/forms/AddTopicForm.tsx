@@ -1,3 +1,4 @@
+// src/components/friends/detail/forms/AddTopicForm.tsx
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Topic, TopicStorage } from '@/utils/topics_storage';
@@ -10,10 +11,10 @@ interface AddTopicFormProps {
   onTopicAdded: (topic: Topic) => void;
   isOpen: boolean;
   onClose: () => void;
-  initialData?: Topic; 
+  initialData?: Topic;
 }
 
-export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }: AddTopicFormProps) {
+export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose, initialData }: AddTopicFormProps) {
   const [content, setContent] = useState('');
   const [user, setUser] = useState<User | null>(null);
 
@@ -30,28 +31,51 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
     return () => unsubscribe();
   }, []);
 
+  // Set initial data when the modal opens or initialData changes
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setContent(initialData.content);
+    } else if (!initialData && isOpen) {
+      setContent('');
+    }
+  }, [initialData, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || !user) return;
 
-    const newTopic: Topic = {
-      id: uuidv4(),
-      friendId,
-      content,
-      status: "Active",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: user.uid,
-    };
+    if (initialData) {
+      // Update existing topic
+      const updatedTopic: Topic = {
+        ...initialData,
+        content: content.trim(),
+        updatedAt: new Date().toISOString(),
+      };
 
-    await TopicStorage.addItem(newTopic);
-    onTopicAdded(newTopic);
+      await TopicStorage.updateItem(updatedTopic);
+      onTopicAdded(updatedTopic);
+    } else {
+      // Create new topic
+      const newTopic: Topic = {
+        id: uuidv4(),
+        friendId,
+        content: content.trim(),
+        status: "Active",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userId: user.uid,
+      };
+
+      await TopicStorage.addItem(newTopic);
+      onTopicAdded(newTopic);
+    }
+
     setContent('');
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add a New Conversation Topic">
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Topic" : "Add a New Conversation Topic"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1" htmlFor="topic-content">
@@ -67,7 +91,7 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
             required
           />
           <div className="mt-2">
-            <VoiceInputButton targetInputId="note-content" onTextChange={(text) => setContent(text)} />
+            <VoiceInputButton targetInputId="topic-content" onTextChange={(text) => setContent(text)} />
           </div>
         </div>
         <div className="flex justify-end gap-3 pt-2">
@@ -82,7 +106,7 @@ export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }
             type="submit"
             className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            Save Topic
+            {initialData ? "Update Topic" : "Save Topic"}
           </button>
         </div>
       </form>

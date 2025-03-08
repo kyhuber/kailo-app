@@ -21,8 +21,8 @@ export default function FriendNotesTab({ friendId, notes, setNotes }: FriendNote
     setIsEditingNote(note);
   };
 
-  const handleNoteUpdated = (updatedNote: Note) => {
-    setNotes(prev => prev.map(note => note.id === updatedNote.id ? updatedNote : note));
+  const handleNoteUpdated = (updatedNote: GenericItem) => {
+    setNotes(prev => prev.map(note => note.id === updatedNote.id ? updatedNote as Note : note));
     setIsEditingNote(null);
     setSelectedNote(null); // Close detail modal when update completes
   };
@@ -32,11 +32,11 @@ export default function FriendNotesTab({ friendId, notes, setNotes }: FriendNote
     setNotes(prev => prev.filter(note => note.id !== noteId));
   };
 
-  const handleStatusChange = async (noteId: string, status: ItemStatus) => {
-    await NoteStorage.updateNoteStatus(noteId, status as any);
+  const handleStatusChange = async (noteId: string, status: string) => {
+    await NoteStorage.updateNoteStatus(noteId, status as ItemStatus);
     setNotes(notes.map(note => 
       note.id === noteId 
-        ? { ...note, status, updatedAt: new Date().toISOString() } 
+        ? { ...note, status: status as ItemStatus, updatedAt: new Date().toISOString() } 
         : note
     ));
     setSelectedNote(null);
@@ -79,7 +79,7 @@ export default function FriendNotesTab({ friendId, notes, setNotes }: FriendNote
         item={selectedNote}
         itemType="note"
         onDelete={handleDeleteNote}
-        onUpdate={handleNoteUpdated as (item: GenericItem) => void}
+        onUpdate={handleNoteUpdated}
         onStatusChange={handleStatusChange}
         friendId={friendId}
       />
@@ -89,7 +89,10 @@ export default function FriendNotesTab({ friendId, notes, setNotes }: FriendNote
           friendId={friendId}
           isOpen={!!isEditingNote}
           onClose={() => setIsEditingNote(null)}
-          onNoteAdded={handleNoteUpdated}
+          onNoteAdded={(note) => {
+            setNotes(prev => prev.map(n => n.id === note.id ? note : n));
+            setIsEditingNote(null);
+          }}
           initialData={isEditingNote}
         />
       )}
