@@ -1,9 +1,11 @@
 // src/components/friends/detail/tabs/FriendTasksTab.tsx
 import React, { useState } from 'react';
 import { Task, TaskStorage } from '@/utils/tasks_storage';
+import { ItemStatus } from '@/types/shared';
 import TopicCard from '../cards/TopicCard';
 import AddTaskForm from '../forms/AddTaskForm';
 import ConfirmModal from '@/components/shared/ConfirmModal';
+import ItemDetailModal from '@/components/shared/ItemDetailModal';
 
 interface FriendTasksTabProps {
   friendId: string;
@@ -17,6 +19,7 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
   const [taskToReopen, setTaskToReopen] = useState<string | null>(null);
   const [taskToArchive, setTaskToArchive] = useState<string | null>(null);
   const [taskToRestore, setTaskToRestore] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
   const pendingTasks = tasks.filter(task => task.status === 'Pending')
     .sort((a, b) => a.priority === 'High' ? -1 : b.priority === 'High' ? 1 : 0);
@@ -25,6 +28,16 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
 
   const handleAddTask = (newTask: Task) => {
     setTasks(prev => [...prev, newTask]);
+  };
+
+  const handleTaskUpdated = (updatedTask: Task) => {
+    setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
+    setSelectedTask(null);
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    await TaskStorage.deleteItem(taskId);
+    setTasks(prev => prev.filter(task => task.id !== taskId));
   };
 
   const handleCompleteTask = async (taskId: string) => {
@@ -60,6 +73,21 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
     setTaskToRestore(null);
   };
 
+  const handleStatusChange = async (taskId: string, status: string) => {
+    await TaskStorage.updateTaskStatus(taskId, status as any);
+    const updatedAt = new Date().toISOString();
+    let updatedTask: Partial<Task> = { status: status as any, updatedAt };
+    
+    if (status === 'Complete') {
+      updatedTask.completedAt = updatedAt;
+    }
+    
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, ...updatedTask } : task
+    ));
+    setSelectedTask(null);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -83,9 +111,10 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
           {pendingTasks.map(task => (
             <TopicCard 
               key={task.id} 
-              item={task} // changed prop name
+              item={task}
               onComplete={() => setTaskToComplete(task.id)}
               onArchive={() => setTaskToArchive(task.id)}
+              onClick={() => setSelectedTask(task)}
             />
           ))}
         </div>
@@ -103,10 +132,11 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
             {completedTasks.map(task => (
               <TopicCard 
                 key={task.id} 
-                item={task} // changed prop name
+                item={task}
                 onReopen={() => setTaskToReopen(task.id)}
                 onArchive={() => setTaskToArchive(task.id)}
                 isCompleted
+                onClick={() => setSelectedTask(task)}
               />
             ))}
           </div>
@@ -121,17 +151,30 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
             {archivedTasks.map(task => (
               <TopicCard 
                 key={task.id} 
-                item={task} // changed prop name
+                item={task}
                 onRestore={() => setTaskToRestore(task.id)}
                 isArchived
+                onClick={() => setSelectedTask(task)}
               />
             ))}
           </div>
         </>
       )}
       
-            {/* Modals */}
-            <AddTaskForm 
+      {/* Task Detail Modal */}
+      <ItemDetailModal
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        item={selectedTask}
+        itemType="task"
+        onDelete={handleDeleteTask}
+        onUpdate={handleTaskUpdated}
+        onStatusChange={handleStatusChange}
+        friendId={friendId}
+      />
+      
+      {/* Modals */}
+      <AddTaskForm 
         friendId={friendId} 
         onTaskAdded={handleAddTask} 
         isOpen={isAddTaskModalOpen}

@@ -5,7 +5,7 @@ import ConfirmModal from './ConfirmModal';
 import { AiOutlineDown, AiOutlineRight } from 'react-icons/ai';
 import { ItemStatus } from '@/types/shared';
 
-interface ManageableItemListProps<T extends { id: string; status?: ItemStatus; updatedAt: string }> { // Status is now optional
+interface ManageableItemListProps<T extends { id: string; status?: ItemStatus; updatedAt: string }> {
   title: string;
   description: string;
   addItemButtonLabel: string;

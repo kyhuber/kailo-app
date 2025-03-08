@@ -7,13 +7,28 @@ import AddDateForm from '@/components/friends/detail/forms/AddDateForm';
 interface DateCardProps {
   item: ImportantDate;
   onDateUpdated: (date: ImportantDate) => void;
+  onClick?: (date: ImportantDate) => void;
 }
 
-export default function DateCard({ item, onDateUpdated }: DateCardProps) {
+export default function DateCard({ item, onDateUpdated, onClick }: DateCardProps) {
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(item);
+    }
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDateModalOpen(true);
+  };
+
   return (
-    <div className="p-4 rounded-lg shadow flex justify-between items-center bg-white dark:bg-gray-800">
+    <div 
+      className="p-4 rounded-lg shadow flex justify-between items-center bg-white dark:bg-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750"
+      onClick={handleClick}
+    >
       <div className='flex items-center gap-2'>
         <AiOutlineCalendar size={24} />
         <div className='my-1'>
@@ -31,7 +46,7 @@ export default function DateCard({ item, onDateUpdated }: DateCardProps) {
       
       <div className="flex items-center gap-2">
         <button
-          onClick={() => setIsDateModalOpen(true)}
+          onClick={handleButtonClick}
           className="text-blue-500 hover:text-blue-700"
         >
           Edit

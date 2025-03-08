@@ -10,15 +10,39 @@ interface TopicCardProps<T extends { id: string; status: string; updatedAt: stri
   isCompleted?: boolean;
   onComplete?: (id: string) => void;
   onReopen?: (id: string) => void;
+  onClick?: (item: T) => void;
 }
 
-export default function TopicCard<T extends { id: string; status: string; updatedAt: string; createdAt: string, content?: string }>({ item, onArchive, onRestore, isArchived = false, isCompleted = false, onComplete, onReopen }: TopicCardProps<T>) {
+export default function TopicCard<T extends { id: string; status: string; updatedAt: string; createdAt: string, content?: string }>({ 
+  item, 
+  onArchive, 
+  onRestore, 
+  isArchived = false, 
+  isCompleted = false, 
+  onComplete, 
+  onReopen,
+  onClick
+}: TopicCardProps<T>) {
   const dateToShow = isArchived || isCompleted ? item.updatedAt : item.createdAt;
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick(item);
+    }
+  };
+
+  const handleButtonClick = (e: React.MouseEvent, callback: (id: string) => void) => {
+    e.stopPropagation();
+    callback(item.id);
+  };
+
   return (
-    <div className={`p-4 rounded-lg shadow flex justify-between items-center ${
-      (isArchived ?? false) ? 'bg-gray-100 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
-    }`}>
+    <div 
+      className={`p-4 rounded-lg shadow flex justify-between items-center ${
+        (isArchived ?? false) ? 'bg-gray-100 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
+      } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750`}
+      onClick={handleClick}
+    >
       <div>
         <div className='flex items-center gap-2 my-1'>
           <p className={`text-sm ${(isArchived ?? false) ? 'text-gray-600 dark:text-gray-300' : ''}`}>{item.content}</p>
@@ -34,7 +58,7 @@ export default function TopicCard<T extends { id: string; status: string; update
       <div className='flex gap-4'>
         {onComplete && !isArchived && (
           <button
-            onClick={() => onComplete(item.id)}
+            onClick={(e) => handleButtonClick(e, onComplete)}
             className="text-green-500 hover:text-green-700 mx-1 flex items-center gap-1"
           >
             Complete
@@ -42,7 +66,7 @@ export default function TopicCard<T extends { id: string; status: string; update
         )}
         {onArchive && !isArchived && !isCompleted && (
           <button
-            onClick={() => onArchive(item.id)}
+            onClick={(e) => handleButtonClick(e, onArchive)}
             className="text-gray-500 hover:text-gray-700 mx-1 flex items-center gap-1"
           >
             <AiOutlineInbox size={16}/> Archive
@@ -50,7 +74,7 @@ export default function TopicCard<T extends { id: string; status: string; update
         )}
         {onRestore && isArchived && (
           <button
-            onClick={() => onRestore(item.id)}
+            onClick={(e) => handleButtonClick(e, onRestore)}
             className="text-blue-500 hover:text-blue-700 mx-1 flex items-center gap-1"
           >
             <AiOutlineCloudUpload size={16}/> Restore
@@ -58,7 +82,7 @@ export default function TopicCard<T extends { id: string; status: string; update
         )}
         {onReopen && isCompleted && (
           <button
-            onClick={() => onReopen(item.id)}
+            onClick={(e) => handleButtonClick(e, onReopen)}
             className="text-amber-500 hover:text-amber-700 mx-1 flex items-center gap-1"
           >
             Reopen

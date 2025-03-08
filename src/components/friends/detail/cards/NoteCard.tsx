@@ -8,15 +8,26 @@ interface NoteCardProps {
   onRestore?: (id: string) => void;
   onEdit?: () => void;
   isArchived?: boolean;
+  onClick?: (note: Note) => void;
 }
 
-export default function NoteCard({ note, onArchive, onRestore, onEdit, isArchived = false }: NoteCardProps) {
+export default function NoteCard({
+  note,
+  onArchive,
+  onRestore,
+  onEdit,
+  isArchived = false,
+  onClick
+}: NoteCardProps) {
   const dateToShow = isArchived ? note.updatedAt : note.createdAt;
   
   return (
-    <div className={`p-4 rounded-lg shadow flex justify-between ${
-      isArchived ? 'bg-gray-100 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
-    }`}>
+    <div 
+      className={`p-4 rounded-lg shadow flex justify-between ${
+        isArchived ? 'bg-gray-100 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
+      } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750`}
+      onClick={() => onClick && onClick(note)}
+    >
       <div>
         <p className={isArchived ? 'text-gray-600 dark:text-gray-300' : ''}>{note.content}</p>
         <p className="text-xs text-gray-500 mt-1">

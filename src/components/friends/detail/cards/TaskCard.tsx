@@ -10,6 +10,7 @@ interface TaskCardProps {
   onRestore?: (id: string) => void;
   isCompleted?: boolean;
   isArchived?: boolean;
+  onClick?: (note: Task) => void;
 }
 
 export default function TaskCard({ 
@@ -19,7 +20,8 @@ export default function TaskCard({
   onArchive, 
   onRestore, 
   isCompleted = false,
-  isArchived = false 
+  isArchived = false,
+  onClick
 }: TaskCardProps) {
   const dateToShow = isArchived 
     ? task.updatedAt 
@@ -36,7 +38,9 @@ export default function TaskCard({
           : task.priority === 'High'
             ? 'bg-red-50 dark:bg-red-900 border-l-4 border-red-500'
             : 'bg-white dark:bg-gray-800'
-    }`}>
+          } cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750`}
+          onClick={() => onClick && onClick(task)}
+        >
       <div>
         <p className={isCompleted ? 'line-through' : ''}>{task.content}</p>
         {!isArchived && !isCompleted && task.priority === 'High' && (
