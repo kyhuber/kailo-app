@@ -1,9 +1,12 @@
+// src/components/home/DashboardHome.tsx
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { Friend } from '@/utils/friends_storage';
-import { ImportantDate } from '@/utils/dates_storage';
+import { ImportantDate, DateStorage } from '@/utils/dates_storage';
 import SummaryCard from './SummaryCard';
+import ItemDetailModal from '@/components/shared/ItemDetailModal';
 
 interface DashboardHomeProps {
   friends: Friend[];
@@ -12,6 +15,29 @@ interface DashboardHomeProps {
 }
 
 export default function DashboardHome({ friends, pendingTasks, upcomingDates }: DashboardHomeProps) {
+  // New state for selected date and friend lookup
+  const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null);
+  
+  // Create a lookup map for friends
+  const friendsMap: Record<string, Friend> = {};
+  friends.forEach(friend => {
+    friendsMap[friend.id] = friend;
+  });
+  
+  // Handler for date updates
+  const handleUpdateDate = (updatedItem: any) => {
+    // We need to cast the generic item back to ImportantDate
+    const updatedDate = updatedItem as ImportantDate;
+    DateStorage.updateDate(updatedDate);
+    // If you need to refresh the UI, add that logic here
+  };
+  
+  // Handler for date deletion
+    const handleDeleteDate = (dateId: string) => {
+    DateStorage.deleteItem(dateId);
+    // If you need to refresh the UI, add that logic here
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
@@ -105,7 +131,11 @@ export default function DashboardHome({ friends, pendingTasks, upcomingDates }: 
           {upcomingDates.length > 0 ? (
             <div className="space-y-3">
               {upcomingDates.slice(0, 4).map(date => (
-                <div key={date.id} className="p-3 bg-teal-50 dark:bg-teal-900/30 rounded-lg flex justify-between items-center">
+                <div 
+                  key={date.id} 
+                  className="p-3 bg-teal-50 dark:bg-teal-900/30 rounded-lg flex justify-between items-center cursor-pointer hover:bg-teal-100 dark:hover:bg-teal-800/40 transition"
+                  onClick={() => setSelectedDate(date)}
+                >
                   <div>
                     <p className="font-medium text-teal-900 dark:text-teal-200">{date.title}</p>
                     <p className="text-sm text-teal-800 dark:text-teal-300">
@@ -115,8 +145,9 @@ export default function DashboardHome({ friends, pendingTasks, upcomingDates }: 
                   <Link 
                     href={`/friends/${date.friendId}`}
                     className="text-sm text-teal-700 dark:text-teal-300 hover:underline"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    View friend
+                    {friendsMap[date.friendId]?.name || 'Unknown Friend'}
                   </Link>
                 </div>
               ))}
@@ -134,6 +165,20 @@ export default function DashboardHome({ friends, pendingTasks, upcomingDates }: 
           )}
         </div>
       </div>
+
+      {/* Date Detail Modal */}
+      {selectedDate && (
+        <ItemDetailModal
+          isOpen={!!selectedDate}
+          onClose={() => setSelectedDate(null)}
+          item={selectedDate}
+          itemType="date"
+          onDelete={handleDeleteDate}
+          onUpdate={handleUpdateDate}
+          onStatusChange={() => {}}
+          friendId={selectedDate.friendId}
+        />
+      )}
     </div>
   );
 }

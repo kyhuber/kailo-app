@@ -7,7 +7,6 @@ import { Friend, FriendStorage } from '@/utils/friends_storage';
 import { TaskStorage } from '@/utils/tasks_storage';
 import { DateStorage, ImportantDate } from '@/utils/dates_storage';
 import EmptyStateHome from '@/components/home/EmptyStateHome';
-import EarlyAdoptionHome from '@/components/home/EarlyAdoptionHome';
 import DashboardHome from '@/components/home/DashboardHome';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -67,12 +66,6 @@ export default function HomePage() {
         </div>
       ) : friends.length === 0 ? (
         <EmptyStateHome />
-      ) : friends.length <= 2 ? (
-        <EarlyAdoptionHome 
-          friends={friends} 
-          pendingTasks={pendingTasks} 
-          upcomingDates={upcomingDates} 
-        />
       ) : (
         <DashboardHome 
           friends={friends} 
