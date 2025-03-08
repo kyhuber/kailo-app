@@ -8,12 +8,15 @@ import { FriendStorage, Friend } from '@/utils/friends_storage';
 import DateModal from '@/components/dates/DateModal';
 import { AiOutlineCalendar, AiOutlinePlus } from 'react-icons/ai';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ItemDetailModal from '@/components/shared/ItemDetailModal';
+import { ItemStatus } from '@/types/shared';
 
 export default function CalendarPage() {
   const [dates, setDates] = useState<ImportantDate[]>([]);
   const [friends, setFriends] = useState<Record<string, Friend>>({});
   const [loading, setLoading] = useState(true);
   const [isAddDateModalOpen, setIsAddDateModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -47,6 +50,31 @@ export default function CalendarPage() {
 
   const handleAddDate = (newDate: ImportantDate) => {
     setDates(prev => [...prev, newDate]);
+  };
+
+  const handleUpdateDate = (updatedDate: any) => {
+    setDates(prev => prev.map(date => date.id === updatedDate.id ? updatedDate : date));
+    setSelectedDate(null); // Close modal after update
+  };
+
+  const handleDeleteDate = async (dateId: string) => {
+    await DateStorage.deleteItem(dateId);
+    setDates(prev => prev.filter(date => date.id !== dateId));
+    setSelectedDate(null);
+  };
+
+  const handleStatusChange = async (dateId: string, status: string) => {
+    const dateToUpdate = dates.find(d => d.id === dateId);
+    if (dateToUpdate) {
+      const updatedDate = {
+        ...dateToUpdate,
+        status: status as ItemStatus,
+        updatedAt: new Date().toISOString()
+      };
+      await DateStorage.updateDate(updatedDate);
+      setDates(dates.map(date => date.id === dateId ? updatedDate : date));
+      setSelectedDate(null); // Close the modal after status change
+    }
   };
 
   const groupDatesByMonth = () => {
@@ -163,7 +191,11 @@ export default function CalendarPage() {
                 
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {monthDates.map(date => (
-                    <div key={date.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <div 
+                      key={date.id} 
+                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                      onClick={() => setSelectedDate(date)}
+                    >
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center">
@@ -186,6 +218,7 @@ export default function CalendarPage() {
                           <Link 
                             href={`/friends/${date.friendId}`}
                             className="text-sm text-teal-600 dark:text-teal-400 hover:underline block mt-1"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             {friends[date.friendId]?.name || 'Unknown Friend'}
                           </Link>
@@ -243,12 +276,27 @@ export default function CalendarPage() {
           </div>
         )}
 
+        {/* Add Date Modal */}
         <DateModal
           isOpen={isAddDateModalOpen}
           onClose={() => setIsAddDateModalOpen(false)}
           onDateAdded={handleAddDate}
           friends={Object.values(friends)}
         />
+
+        {/* Date Detail Modal */}
+        {selectedDate && (
+          <ItemDetailModal
+            isOpen={!!selectedDate}
+            onClose={() => setSelectedDate(null)}
+            item={selectedDate}
+            itemType="date"
+            onDelete={handleDeleteDate}
+            onUpdate={handleUpdateDate}
+            onStatusChange={handleStatusChange}
+            friendId={selectedDate.friendId}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );

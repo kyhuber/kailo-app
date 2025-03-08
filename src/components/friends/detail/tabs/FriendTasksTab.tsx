@@ -20,6 +20,7 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
   const [taskToArchive, setTaskToArchive] = useState<string | null>(null);
   const [taskToRestore, setTaskToRestore] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [filter, setFilter] = useState<'pending' | 'completed' | 'archived'>('pending');
   
   const pendingTasks = tasks.filter(task => task.status === 'Pending')
     .sort((a, b) => a.priority === 'High' ? -1 : b.priority === 'High' ? 1 : 0);
@@ -88,6 +89,12 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
     setSelectedTask(null);
   };
 
+  const filteredTasks = filter === 'pending' 
+    ? pendingTasks 
+    : filter === 'completed' 
+    ? completedTasks 
+    : archivedTasks;
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -100,65 +107,56 @@ export default function FriendTasksTab({ friendId, tasks, setTasks }: FriendTask
         </button>
       </div>
       
-      <p className="text-gray-600 dark:text-gray-400 mb-6">
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
         Tasks are action items related to your friendship that you need to complete.
       </p>
       
-      {/* Pending Tasks */}
-      <h3 className="font-medium text-lg mb-3">Pending Tasks</h3>
-      {pendingTasks.length > 0 ? (
+      {/* Filter buttons */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button
+          onClick={() => setFilter('pending')}
+          className={`px-4 py-2 rounded-md ${filter === 'pending' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+        >
+          Pending ({pendingTasks.length})
+        </button>
+        <button
+          onClick={() => setFilter('completed')}
+          className={`px-4 py-2 rounded-md ${filter === 'completed' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+        >
+          Completed ({completedTasks.length})
+        </button>
+        <button
+          onClick={() => setFilter('archived')}
+          className={`px-4 py-2 rounded-md ${filter === 'archived' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+        >
+          Archived ({archivedTasks.length})
+        </button>
+      </div>
+      
+      {filteredTasks.length > 0 ? (
         <div className="space-y-3 mb-6">
-          {pendingTasks.map(task => (
+          {filteredTasks.map(task => (
             <TopicCard 
               key={task.id} 
               item={task}
-              onComplete={() => setTaskToComplete(task.id)}
-              onArchive={() => setTaskToArchive(task.id)}
+              onComplete={filter === 'pending' ? setTaskToComplete : undefined}
+              onReopen={filter === 'completed' ? setTaskToReopen : undefined}
+              onArchive={filter !== 'archived' ? setTaskToArchive : undefined}
+              onRestore={filter === 'archived' ? setTaskToRestore : undefined}
+              isCompleted={filter === 'completed'}
+              isArchived={filter === 'archived'}
               onClick={() => setSelectedTask(task)}
             />
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
-          No pending tasks. Great job!
+        <p className="text-gray-500 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
+          {filter === 'pending' 
+            ? "No pending tasks. Great job!" 
+            : filter === 'completed'
+            ? "No completed tasks yet." 
+            : "No archived tasks."}
         </p>
-      )}
-
-      {/* Completed Tasks */}
-      {completedTasks.length > 0 && (
-        <>
-          <h3 className="font-medium text-lg mb-3">Completed Tasks</h3>
-          <div className="space-y-3 mb-6">
-            {completedTasks.map(task => (
-              <TopicCard 
-                key={task.id} 
-                item={task}
-                onReopen={() => setTaskToReopen(task.id)}
-                onArchive={() => setTaskToArchive(task.id)}
-                isCompleted
-                onClick={() => setSelectedTask(task)}
-              />
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* Archived Tasks */}
-      {archivedTasks.length > 0 && (
-        <>
-          <h3 className="font-medium text-lg mb-3">Archived Tasks</h3>
-          <div className="space-y-3">
-            {archivedTasks.map(task => (
-              <TopicCard 
-                key={task.id} 
-                item={task}
-                onRestore={() => setTaskToRestore(task.id)}
-                isArchived
-                onClick={() => setSelectedTask(task)}
-              />
-            ))}
-          </div>
-        </>
       )}
       
       {/* Task Detail Modal */}
