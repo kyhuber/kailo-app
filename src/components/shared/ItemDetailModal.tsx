@@ -66,10 +66,6 @@ export default function ItemDetailModal({
     }
   };
 
-  // [Rest of the previous implementation remains the same]
-  // Preserve all existing methods: renderContent, renderActionButtons, getModalTitle, renderEditForm
-
-  // Updated handleStatusChange method to use ItemStatus
   const renderActionButtons = () => {
     const status = 'status' in item ? item.status as ItemStatus : undefined;
     
@@ -192,33 +188,91 @@ export default function ItemDetailModal({
         return null;
     }
   };
-  
-  // If editing, render the edit form
-  if (isEditing) {
-    return renderEditForm();
-  }
-  
-  return (
-    <>
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={getModalTitle()}
-        size="md"
-      >
-        {renderContent()}
-        {renderActionButtons()}
-      </Modal>
-      
-      <ConfirmModal
-        isOpen={isConfirmDeleteOpen}
-        onClose={() => setIsConfirmDeleteOpen(false)}
-        onConfirm={confirmDelete}
-        title={`Delete ${itemType.charAt(0).toUpperCase() + itemType.slice(1)}`}
-        message={`Are you sure you want to delete this ${itemType}? This action cannot be undone.`}
-        confirmButtonText="Delete"
-        variant="danger"
-      />
-    </>
-  );
-}
+
+  const renderContent = (): React.ReactNode => {
+    const content = 'content' in item ? (item as Note | Topic | Task).content : '';
+    const title = 'title' in item ? (item as ImportantDate).title : '';
+    const description = 'description' in item ? (item as ImportantDate).description : '';
+    const date = 'date' in item ? new Date((item as ImportantDate).date).toLocaleDateString() : '';
+    const endDate = 'endDate' in item && (item as ImportantDate).endDate 
+      ? new Date((item as ImportantDate).endDate!).toLocaleDateString() 
+      : '';
+    const type = 'type' in item ? (item as ImportantDate).type : '';
+    const priority = 'priority' in item ? (item as Task).priority : '';
+    const status = 'status' in item ? (item as Note | Topic | Task).status : '';
+    
+    const updatedAtDisplay = new Date(item.updatedAt).toLocaleDateString();
+    const createdAtDisplay = 'createdAt' in item ? new Date(item.createdAt).toLocaleDateString() : '';
+    
+    return (
+      <div className="space-y-4">
+        {/* Content for Note and Topic */}
+        {(itemType === 'note' || itemType === 'topic') && (
+          <div>
+            <p className="text-gray-800 dark:text-gray-200 text-lg">{content}</p>
+          </div>
+        )}
+        
+        {/* Content for Task */}
+        {itemType === 'task' && (
+          <div>
+            <p className="text-gray-800 dark:text-gray-200 text-lg">{content}</p>
+            {priority === 'High' && (
+              <div className="mt-2">
+                <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                  High Priority
+                </span>
+              </div>
+            )}
+            <div className="mt-2">
+              <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${
+                status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                status === 'Complete' ? 'bg-green-100 text-green-800' : 
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {status}
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {/* Content for Date */}
+        {itemType === 'date' && (
+          <div>
+            <h3 className="text-xl font-semibold">{title}</h3>
+            <div className="mt-2">
+              <p className="text-gray-700 dark:text-gray-300">
+                <span className="font-medium">Date: </span> 
+                {date}
+                {endDate && ` - ${endDate}`}
+              </p>
+              {type && (
+                <p className="text-gray-700 dark:text-gray-300 mt-1">
+                  <span className="font-medium">Type: </span> 
+                  {type}
+                </p>
+              )}
+              {description && (
+                <div className="mt-3">
+                  <p className="font-medium">Description:</p>
+                  <p className="text-gray-700 dark:text-gray-300 mt-1">{description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Metadata for all items */}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="font-medium">Last updated:</span> {updatedAtDisplay}
+          </p>
+          {createdAtDisplay && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="font-medium">Created:</span> {createdAtDisplay}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }}

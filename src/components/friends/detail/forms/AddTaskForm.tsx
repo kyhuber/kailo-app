@@ -12,6 +12,7 @@ interface AddTaskFormProps {
   onClose: () => void;
   onTaskAdded: (task: Task) => void;
   friends?: Friend[];
+  initialData?: Task;
 }
 
 export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, friends }: AddTaskFormProps) {

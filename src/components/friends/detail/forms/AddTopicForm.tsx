@@ -10,6 +10,7 @@ interface AddTopicFormProps {
   onTopicAdded: (topic: Topic) => void;
   isOpen: boolean;
   onClose: () => void;
+  initialData?: Topic; 
 }
 
 export default function AddTopicForm({ friendId, onTopicAdded, isOpen, onClose }: AddTopicFormProps) {
