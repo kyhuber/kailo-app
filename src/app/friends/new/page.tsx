@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FriendStorage } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
@@ -102,9 +103,10 @@ export default function AddFriendPage() {
               <div className="flex-shrink-0">
                 {photoPreview ? (
                   <div className="w-20 h-20 rounded-full overflow-hidden relative">
-                    <img 
+                    <Image 
                       src={photoPreview}
-                      alt="Profile preview" 
+                      alt="Profile preview"
+                      fill
                       className="w-full h-full object-cover"
                     />
                   </div>

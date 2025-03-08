@@ -1,5 +1,6 @@
 // src/components/FriendCard.tsx
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Friend } from '@/utils/friends_storage';
 import { FiEdit2 } from 'react-icons/fi';
@@ -53,10 +54,11 @@ export default function FriendCard({ friend, onEdit, pendingTasksCount = 0, upco
           {/* Avatar with Photo or Initials */}
           <div className="flex items-center mb-3">
             {friend.photoUrl ? (
-              <div className="w-12 h-12 rounded-full overflow-hidden mr-3">
-                <img 
+              <div className="w-12 h-12 rounded-full overflow-hidden mr-3 relative">
+                <Image 
                   src={friend.photoUrl} 
-                  alt={`${friend.name}`} 
+                  alt={`${friend.name}`}
+                  fill
                   className="w-full h-full object-cover"
                 />
               </div>

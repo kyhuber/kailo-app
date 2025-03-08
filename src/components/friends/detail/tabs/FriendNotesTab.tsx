@@ -5,7 +5,7 @@ import { ItemStatus } from '@/types/shared';
 import NoteCard from '../cards/NoteCard';
 import AddNoteForm from '../forms/AddNoteForm';
 import ManageableItemList from '@/components/shared/ManageableItemList';
-import ItemDetailModal from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, { GenericItem } from '@/components/shared/ItemDetailModal';
 
 interface FriendNotesTabProps {
   friendId: string;
@@ -79,7 +79,7 @@ export default function FriendNotesTab({ friendId, notes, setNotes }: FriendNote
         item={selectedNote}
         itemType="note"
         onDelete={handleDeleteNote}
-        onUpdate={handleNoteUpdated}
+        onUpdate={handleNoteUpdated as (item: GenericItem) => void}
         onStatusChange={handleStatusChange}
         friendId={friendId}
       />

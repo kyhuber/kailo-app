@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { ItemStatus } from '@/types/shared';
-import { Note, NoteStorage } from '@/utils/notes_storage';
-import { Topic, TopicStorage } from '@/utils/topics_storage';
-import { Task, TaskStorage } from '@/utils/tasks_storage';
-import { ImportantDate, DateStorage } from '@/utils/dates_storage';
+import { Note } from '@/utils/notes_storage';
+import { Topic } from '@/utils/topics_storage';
+import { Task } from '@/utils/tasks_storage';
+import { ImportantDate } from '@/utils/dates_storage';
 import AddNoteForm from '@/components/friends/detail/forms/AddNoteForm';
 import AddTopicForm from '@/components/friends/detail/forms/AddTopicForm';
 import AddTaskForm from '@/components/friends/detail/forms/AddTaskForm';
@@ -13,7 +13,7 @@ import AddDateForm from '@/components/friends/detail/forms/AddDateForm';
 import ConfirmModal from './ConfirmModal';
 
 type ItemType = 'note' | 'topic' | 'task' | 'date';
-type GenericItem = Note | Topic | Task | ImportantDate;
+export type GenericItem = Note | Topic | Task | ImportantDate;
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -90,6 +90,20 @@ export default function ItemDetailModal({
           </button>
         )}
         
+        <Modal isOpen={isOpen} onClose={onClose} title={getModalTitle()}>
+          {isEditing ? renderEditForm() : renderContent()}
+          {!isEditing && renderActionButtons()}
+        </Modal>
+
+        <ConfirmModal
+          isOpen={isConfirmDeleteOpen}
+          onClose={() => setIsConfirmDeleteOpen(false)}
+          onConfirm={confirmDelete}
+          title="Delete Item"
+          message="Are you sure you want to delete this item? This action cannot be undone."
+        />
+
+
         {/* Archive/Restore buttons for all items */}
         {(status === 'Active' || status === 'Pending' || status === 'Complete') && (
           <button

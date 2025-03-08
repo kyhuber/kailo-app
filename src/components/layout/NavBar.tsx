@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
@@ -77,12 +78,20 @@ export default function NavBar() {
                   >
                     <span className="sr-only">Open user menu</span>
                     {currentUser.photoURL ? (
-                      <img className="h-8 w-8 rounded-full" src={currentUser.photoURL} alt="" />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-teal-100 dark:bg-teal-800 flex items-center justify-center text-teal-800 dark:text-teal-100">
-                        {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'U'}
-                      </div>
-                    )}
+  <div className="h-8 w-8 relative rounded-full overflow-hidden">
+    <Image 
+      src={currentUser.photoURL} 
+      alt="User profile" 
+      fill
+      sizes="32px"
+      style={{ objectFit: 'cover' }}
+    />
+  </div>
+) : (
+  <div className="h-8 w-8 rounded-full bg-teal-100 dark:bg-teal-800 flex items-center justify-center text-teal-800 dark:text-teal-100">
+    {currentUser.displayName ? currentUser.displayName[0].toUpperCase() : 'U'}
+  </div>
+)}
                   </button>
                 </div>
                 
@@ -176,10 +185,16 @@ export default function NavBar() {
           
           {currentUser && (
             <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center px-5">
+              <div className="">
                 {currentUser.photoURL ? (
-                  <div className="flex-shrink-0">
-                    <img className="h-10 w-10 rounded-full" src={currentUser.photoURL} alt="" />
+                  <div className="flex-shrink-0 h-10 w-10 relative rounded-full overflow-hidden">
+                        <Image
+                          src={currentUser.photoURL}
+                          alt={`${currentUser.displayName || 'User'}'s profile`}
+                          fill
+                          sizes="40px"
+                          style={{ objectFit: 'cover' }}
+                        />
                   </div>
                 ) : (
                   <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-100 dark:bg-teal-800 flex items-center justify-center text-teal-800 dark:text-teal-100">

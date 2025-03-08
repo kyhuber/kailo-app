@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Friend, FriendStorage } from '@/utils/friends_storage';
+import { FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
 
 interface PhotoUploadProps {

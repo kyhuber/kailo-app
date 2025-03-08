@@ -5,7 +5,7 @@ import { ItemStatus } from '@/types/shared';
 import AddDateForm from '../forms/AddDateForm';
 import ManageableItemList from '@/components/shared/ManageableItemList';
 import DateCard from '../cards/DateCard';
-import ItemDetailModal from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, { GenericItem} from '@/components/shared/ItemDetailModal';
 
 interface FriendDatesTabProps {
   friendId: string;
@@ -16,7 +16,8 @@ interface FriendDatesTabProps {
 export default function FriendDatesTab({ friendId, dates, setDates }: FriendDatesTabProps) {
   const [selectedDate, setSelectedDate] = useState<ImportantDate | null>(null);
 
-  const handleUpdateDate = async (date: ImportantDate) => {
+  const handleUpdateDate = async (item: GenericItem): Promise<void> => {
+    const date = item as ImportantDate;
     await DateStorage.updateDate(date);
     setDates(dates.map(existingDate => existingDate.id === date.id ? date : existingDate));
     setSelectedDate(null);
@@ -32,7 +33,7 @@ export default function FriendDatesTab({ friendId, dates, setDates }: FriendDate
     if (dateToUpdate) {
       const updatedDate = { 
         ...dateToUpdate, 
-        status: status as any, 
+        status: status as ItemStatus, 
         updatedAt: new Date().toISOString() 
       };
       await DateStorage.updateDate(updatedDate);
@@ -47,7 +48,7 @@ export default function FriendDatesTab({ friendId, dates, setDates }: FriendDate
     <>
       <ManageableItemList<ImportantDate>
         title="Important Dates"
-        description="Important dates related to your friend, such as birthdays, or anniversaries."
+        description="Important dates related to your friend, such as travel dates, starting a new job, anniversaries, etc."
         addItemButtonLabel="Add Date"
         items={dates}
         setItems={setDates}

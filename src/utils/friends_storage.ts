@@ -1,5 +1,4 @@
 import { FirebaseStorage } from './firebase_storage';
-import { v4 as uuidv4 } from 'uuid';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 

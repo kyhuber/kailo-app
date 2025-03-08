@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
 
+interface WebkitWindow extends Window {
+  webkitSpeechRecognition: new () => SpeechRecognition;
+}
+
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -50,7 +54,7 @@ export default function VoiceInputButton({ targetInputId, onTextChange }: VoiceI
       return;
     }
 
-    const speechRecognition = new (window as any).webkitSpeechRecognition();
+    const speechRecognition = new ((window as unknown as WebkitWindow).webkitSpeechRecognition)();
     speechRecognition.continuous = false;
     speechRecognition.interimResults = false;
     speechRecognition.lang = 'en-US';

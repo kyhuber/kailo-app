@@ -1,11 +1,9 @@
-// src/utils/database.ts
 import { db } from '@/lib/firebase';
+import { Firestore } from 'firebase/firestore';
 
 export class DatabaseManager {
-  // This class is now a compatibility layer for legacy code
-  // Most functionality has been moved to individual Firebase storage classes
   
-  static async getDatabase(): Promise<any> {
+  static async getDatabase(): Promise<Firestore> {
     return db; // Return Firestore instance for compatibility
   }
   

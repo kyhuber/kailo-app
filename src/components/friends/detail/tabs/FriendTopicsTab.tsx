@@ -1,10 +1,11 @@
 // src/components/friends/detail/tabs/FriendTopicsTab.tsx
 import React, { useState } from 'react';
+import { ItemStatus } from '@/types/shared';
 import { Topic, TopicStorage } from '@/utils/topics_storage';
 import TopicCard from '../cards/TopicCard';
 import AddTopicForm from '../forms/AddTopicForm';
 import ManageableItemList from '@/components/shared/ManageableItemList';
-import ItemDetailModal from '@/components/shared/ItemDetailModal';
+import ItemDetailModal, { GenericItem} from '@/components/shared/ItemDetailModal';
 
 interface FriendTopicsTabProps {
   friendId: string;
@@ -15,7 +16,7 @@ interface FriendTopicsTabProps {
 export default function FriendTopicsTab({ friendId, topics, setTopics }: FriendTopicsTabProps) {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
-  const handleTopicUpdated = (updatedTopic: Topic) => {
+  const handleTopicUpdated = (updatedTopic: Topic | GenericItem) => {
     setTopics(prev => prev.map(topic => topic.id === updatedTopic.id ? updatedTopic : topic));
     setSelectedTopic(null);
   };
@@ -26,10 +27,10 @@ export default function FriendTopicsTab({ friendId, topics, setTopics }: FriendT
   };
 
   const handleStatusChange = async (topicId: string, status: string) => {
-    await TopicStorage.updateTopicStatus(topicId, status as any);
+    await TopicStorage.updateTopicStatus(topicId, status as ItemStatus);
     setTopics(topics.map(topic => 
       topic.id === topicId 
-        ? { ...topic, status, updatedAt: new Date().toISOString() } 
+        ? { ...topic, status: status as ItemStatus, updatedAt: new Date().toISOString() } 
         : topic
     ));
     setSelectedTopic(null);
@@ -73,7 +74,7 @@ export default function FriendTopicsTab({ friendId, topics, setTopics }: FriendT
         item={selectedTopic}
         itemType="topic"
         onDelete={handleDeleteTopic}
-        onUpdate={handleTopicUpdated}
+        onUpdate={(item) => handleTopicUpdated(item as Topic)}
         onStatusChange={handleStatusChange}
         friendId={friendId}
       />

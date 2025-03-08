@@ -3,7 +3,7 @@ import { db, auth } from '@/lib/firebase';
 import { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, FieldValue } from 'firebase/firestore';
 
 // Utility function to remove undefined values from an object
-const removeUndefinedValues = (obj: any) => {
+const removeUndefinedValues = (obj: Record<string, unknown>) => {
   return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
 };
 
@@ -90,7 +90,7 @@ export class FirebaseStorage<T extends { id: string }> {
   }
 
   // Query items by field
-  async queryByField(field: string, value: any): Promise<T[]> {
+  async queryByField(field: string, value: string | number | boolean): Promise<T[]> {
     try {
       const q = query(this.getCollectionRef(), where(field, '==', value));
       const snapshot = await getDocs(q);
