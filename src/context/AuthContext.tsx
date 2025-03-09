@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: () => Promise<User | null>;
   signOut: () => Promise<void>;
+  googleAccessToken: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -41,8 +43,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signInWithGoogle() {
     const provider = new GoogleAuthProvider();
+    
+    // Request access to Google Contacts
+    provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+    
     try {
       const result = await signInWithPopup(auth, provider);
+      
+      // Get the Google Access Token
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential) {
+        const token = credential.accessToken;
+        setGoogleAccessToken(token || null);
+      }
+      
       return result.user;
     } catch (error) {
       console.error('Error signing in with Google:', error);
@@ -51,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   function signOut() {
+    setGoogleAccessToken(null);
     return firebaseSignOut(auth);
   }
 
@@ -58,7 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     currentUser,
     loading,
     signInWithGoogle,
-    signOut
+    signOut,
+    googleAccessToken
   };
 
   return (

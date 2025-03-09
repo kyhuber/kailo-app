@@ -1,4 +1,6 @@
 // src/app/friends/new/page.tsx
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -6,6 +8,15 @@ import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import GoogleContactsPicker from '@/components/friends/GoogleContactsPicker';
+
+interface ContactPerson {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  photoUrl?: string;
+}
 
 export default function AddFriendPage() {
   const [name, setName] = useState('');
@@ -14,6 +25,8 @@ export default function AddFriendPage() {
   const [user, setUser] = useState<User | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -36,15 +49,18 @@ export default function AddFriendPage() {
         setUser(null);
       }
     });
-
-    return () => unsubscribe();
+  
+    // Return the unsubscribe function directly
+    return unsubscribe;
   }, []);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setPhotoFile(file);
+      setPhotoUrl(null); // Clear any Google photo URL when uploading a file
       
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
@@ -56,44 +72,70 @@ export default function AddFriendPage() {
   const handleRemovePhoto = () => {
     setPhotoFile(null);
     setPhotoPreview(null);
+    setPhotoUrl(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
+  const handleContactSelected = (contact: ContactPerson) => {
+    setName(contact.name);
+    if (contact.email) {
+      setContactInfo(contact.email);
+    } else if (contact.phone) {
+      setContactInfo(contact.phone);
+    }
+    
+    if (contact.photoUrl) {
+      setPhotoUrl(contact.photoUrl);
+      setPhotoPreview(contact.photoUrl);
+      setPhotoFile(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !user) return;
-
-    // Clean up input values
-    const cleanedName = name.trim();
-    const cleanedContactInfo = contactInfo.trim() || null; // Use null instead of undefined
-    const parsedTags = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
-
-    const friendId = uuidv4();
-    const newFriend: Partial<Friend> = {
-      id: friendId,
-      name: cleanedName,
-      ...(cleanedContactInfo && { contactInfo: cleanedContactInfo }), // Conditionally add contactInfo
-      ...(parsedTags.length > 0 && { tags: parsedTags }),
-      color: selectedColor,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: user.uid
-    };
-
+    if (!name.trim() || !user || isSubmitting) return;
+    
     try {
-      // First save the basic friend info
-      await FriendStorage.addItem(newFriend as Friend);
+      setIsSubmitting(true);
 
-      // Then upload photo if provided
-      if (photoFile) {
+      // Clean up input values to match the Friend type
+      const cleanedName = name.trim();
+      const cleanedContactInfo = contactInfo.trim() || undefined;
+      const parsedTags = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
+      const friendId = uuidv4();
+      const newFriend: Friend = {
+        id: friendId,
+        name: cleanedName,
+        contactInfo: cleanedContactInfo,
+        tags: parsedTags.length > 0 ? parsedTags : undefined,
+        color: selectedColor,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        userId: user.uid
+      };
+
+      // If we have a photoUrl from Google, add it directly
+      if (photoUrl) {
+        newFriend.photoUrl = photoUrl;
+      }
+
+      // First save the basic friend info
+      await FriendStorage.addItem(newFriend);
+
+      // Then upload photo if provided and no Google photo URL
+      if (photoFile && !photoUrl) {
         await FriendStorage.uploadPhoto(friendId, photoFile);
       }
 
       router.push('/friends');
     } catch (error) {
       console.error("Error adding friend:", error);
+      alert("Failed to add friend. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -101,7 +143,14 @@ export default function AddFriendPage() {
     <ProtectedRoute>
       <div className="container mx-auto p-4 max-w-md">
         <h1 className="text-2xl font-bold mb-6">Add a New Friend</h1>
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-4">
+        
+        {/* Google Contacts Import Button */}
+        <GoogleContactsPicker 
+          onContactSelected={handleContactSelected}
+          buttonLabel="Import from Google Contacts"
+        />
+        
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-4 mt-4">
           {/* Photo Upload Section */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Profile Photo</label>
@@ -112,7 +161,8 @@ export default function AddFriendPage() {
                     <Image 
                       src={photoPreview}
                       alt="Profile preview"
-                      fill
+                      width={80}
+                      height={80}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -151,7 +201,7 @@ export default function AddFriendPage() {
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Recommended: square photos up to 1MB
+                  {photoUrl ? 'Using photo from Google Contacts' : 'Recommended: square photos up to 1MB'}
                 </p>
               </div>
             </div>
@@ -231,10 +281,12 @@ export default function AddFriendPage() {
           <div className="pt-4">
             <button 
               type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
-              disabled={!user}
+              disabled={isSubmitting || !user}
+              className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 ${
+                isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+              }`}
             >
-              Save Friend
+              {isSubmitting ? 'Saving...' : 'Save Friend'}
             </button>
           </div>
         </form>
