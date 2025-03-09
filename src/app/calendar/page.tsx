@@ -52,7 +52,7 @@ export default function CalendarPage() {
     setDates(prev => [...prev, newDate]);
   };
 
-  const handleUpdateDate = (updatedDate: any) => {
+  const handleUpdateDate = (updatedDate: ImportantDate) => {
     setDates(prev => prev.map(date => date.id === updatedDate.id ? updatedDate : date));
     setSelectedDate(null); // Close modal after update
   };

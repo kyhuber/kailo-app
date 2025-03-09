@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { FriendStorage } from '@/utils/friends_storage';
+import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -68,27 +68,37 @@ export default function AddFriendPage() {
     e.preventDefault();
     if (!name.trim() || !user) return;
 
+    // Clean up input values to match the Friend type
+    const cleanedName = name.trim();
+    const cleanedContactInfo = contactInfo.trim() || undefined; // Use undefined instead of null for Friend type
+    const parsedTags = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
     const friendId = uuidv4();
-    const newFriend = {
+    const newFriend: Friend = {
       id: friendId,
-      name,
-      contactInfo: contactInfo || undefined,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : undefined,
+      name: cleanedName,
+      contactInfo: cleanedContactInfo,
+      tags: parsedTags.length > 0 ? parsedTags : undefined,
       color: selectedColor,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       userId: user.uid
     };
 
-    // First save the basic friend info
-    await FriendStorage.addItem(newFriend);
+    try {
+      // First save the basic friend info
+      await FriendStorage.addItem(newFriend);
 
-    // Then upload photo if provided
-    if (photoFile) {
-      await FriendStorage.uploadPhoto(friendId, photoFile);
+      // Then upload photo if provided
+      if (photoFile) {
+        await FriendStorage.uploadPhoto(friendId, photoFile);
+      }
+
+      router.push('/friends');
+    } catch (error) {
+      console.error("Error adding friend:", error);
+      // You could add error handling UI here
     }
-
-    router.push('/friends');
   };
 
   return (

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Task, TaskStorage } from '@/utils/tasks_storage';
 import Modal from '@/components/shared/Modal';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
-import Select from 'react-select';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import VoiceInputButton from '@/components/shared/VoiceInputButton';
 
@@ -20,7 +19,7 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState<'Normal' | 'High'>('Normal');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedFriend, setSelectedFriend] = useState<{ value: string; label: string } | null>(null);
+  const [selectedFriendId, setSelectedFriendId] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
   const [allFriends, setAllFriends] = useState<Friend[]>([]);
 
@@ -57,15 +56,7 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
     if (initialData && isOpen) {
       setContent(initialData.content);
       setPriority(initialData.priority);
-      
-      // If we have friendId from initialData, set the selected friend
-      if (initialData.friendId) {
-        const actualFriends = friends || allFriends;
-        const friend = actualFriends.find(f => f.id === initialData.friendId);
-        if (friend) {
-          setSelectedFriend({ value: friend.id, label: friend.name });
-        }
-      }
+      setSelectedFriendId(initialData.friendId);
     } else if (isOpen) {
       // Reset form when opening without initial data
       setContent('');
@@ -73,13 +64,11 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
       
       // Set the selected friend if friendId is provided
       if (friendId) {
-        const actualFriends = friends || allFriends;
-        const friend = actualFriends.find(f => f.id === friendId);
-        if (friend) {
-          setSelectedFriend({ value: friend.id, label: friend.name });
-        }
+        setSelectedFriendId(friendId);
       } else {
-        setSelectedFriend(null);
+        // Default to first friend if available
+        const availableFriends = friends || allFriends;
+        setSelectedFriendId(availableFriends.length > 0 ? availableFriends[0].id : '');
       }
     }
   }, [initialData, isOpen, friendId, friends, allFriends]);
@@ -91,7 +80,7 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
 
     try {
       // Determine the friend ID to use
-      let actualFriendId = selectedFriend ? selectedFriend.value : null;
+      let actualFriendId = selectedFriendId;
       if (!actualFriendId && friendId) {
         actualFriendId = friendId;
       }
@@ -134,10 +123,6 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
   };
 
   const actualFriends = friends || allFriends;
-  const friendOptions = actualFriends.map((friend) => ({
-    value: friend.id,
-    label: friend.name,
-  }));
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData ? "Edit Task" : "Add Task"}>
@@ -145,30 +130,38 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
         {/* Friend Select - Only show if friendId is not provided */}
         {!friendId && (
           <div>
-            <label htmlFor="friend" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Friend
+            <label htmlFor="friend" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+              Friend <span className="text-rose-500">*</span>
             </label>
-            <Select
-              className="mt-1 block w-full text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
-              options={friendOptions}
-              value={selectedFriend}
-              onChange={(selectedOption) =>
-                setSelectedFriend(selectedOption as { value: string; label: string })
-              }
-            />
+            <select
+              id="friend"
+              value={selectedFriendId}
+              onChange={(e) => setSelectedFriendId(e.target.value)}
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 
+                         text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="" disabled>Select a friend</option>
+              {actualFriends.map((friend) => (
+                <option key={friend.id} value={friend.id}>
+                  {friend.name}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
         <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Task Description
+          <label htmlFor="content" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+            Task Description <span className="text-rose-500">*</span>
           </label>
           <div className="mt-1">
             <textarea
               id="content"
               name="content"
               rows={3}
-              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 dark:border-gray-700 rounded-md dark:bg-gray-800 dark:text-gray-200"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 
+                         text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter task description..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -181,13 +174,14 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
         </div>
 
         <div>
-          <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="priority" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
             Priority
           </label>
           <select
             id="priority"
             name="priority"
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700"
+            className="w-full p-3 border rounded-lg bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 
+                       text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={priority}
             onChange={(e) => setPriority(e.target.value as 'Normal' | 'High')}
           >
@@ -196,18 +190,18 @@ export default function AddTaskForm({ friendId, isOpen, onClose, onTaskAdded, fr
           </select>
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-700 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900"
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting || content.trim() === ''}
-            className={`inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 ${isSubmitting || content.trim() === '' ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 ${isSubmitting || content.trim() === '' ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isSubmitting ? 'Saving...' : initialData ? 'Update Task' : 'Save Task'}
           </button>

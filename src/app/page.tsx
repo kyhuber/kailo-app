@@ -24,7 +24,7 @@ export default function HomePage() {
         setFriends(Array.isArray(storedFriends) ? storedFriends : []);
 
         // Get pending tasks count
-        const allTasks = await TaskStorage.getTasksByFriend('all');
+        const allTasks = await TaskStorage.getAll();
         const pendingCount = Array.isArray(allTasks) 
           ? allTasks.filter(task => task.status === 'Pending').length 
           : 0;

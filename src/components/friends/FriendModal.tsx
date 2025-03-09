@@ -1,7 +1,7 @@
 // src/components/friends/FriendModal.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
@@ -20,14 +20,14 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
  const [tags, setTags] = useState('');
  const [user, setUser] = useState<User | null>(null);
 
- const colorOptions = [
-   { value: 'bg-teal-100', label: 'Teal' },
-   { value: 'bg-amber-100', label: 'Amber' },
-   { value: 'bg-rose-100', label: 'Rose' },
-   { value: 'bg-violet-100', label: 'Violet' },
-   { value: 'bg-emerald-100', label: 'Emerald' },
-   { value: 'bg-blue-100', label: 'Blue' },
- ];
+ const colorOptions = useMemo(() => [
+  { value: 'bg-teal-100', label: 'Teal' },
+  { value: 'bg-amber-100', label: 'Amber' },
+  { value: 'bg-rose-100', label: 'Rose' },
+  { value: 'bg-violet-100', label: 'Violet' },
+  { value: 'bg-emerald-100', label: 'Emerald' },
+  { value: 'bg-blue-100', label: 'Blue' },
+], []);
 
  const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
 
