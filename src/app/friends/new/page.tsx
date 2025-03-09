@@ -1,6 +1,4 @@
 // src/app/friends/new/page.tsx
-'use client';
-
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -47,7 +45,6 @@ export default function AddFriendPage() {
       const file = e.target.files[0];
       setPhotoFile(file);
       
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
@@ -68,17 +65,17 @@ export default function AddFriendPage() {
     e.preventDefault();
     if (!name.trim() || !user) return;
 
-    // Clean up input values to match the Friend type
+    // Clean up input values
     const cleanedName = name.trim();
-    const cleanedContactInfo = contactInfo.trim() || undefined; // Use undefined instead of null for Friend type
+    const cleanedContactInfo = contactInfo.trim() || null; // Use null instead of undefined
     const parsedTags = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
 
     const friendId = uuidv4();
-    const newFriend: Friend = {
+    const newFriend: Partial<Friend> = {
       id: friendId,
       name: cleanedName,
-      contactInfo: cleanedContactInfo,
-      tags: parsedTags.length > 0 ? parsedTags : undefined,
+      ...(cleanedContactInfo && { contactInfo: cleanedContactInfo }), // Conditionally add contactInfo
+      ...(parsedTags.length > 0 && { tags: parsedTags }),
       color: selectedColor,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -87,7 +84,7 @@ export default function AddFriendPage() {
 
     try {
       // First save the basic friend info
-      await FriendStorage.addItem(newFriend);
+      await FriendStorage.addItem(newFriend as Friend);
 
       // Then upload photo if provided
       if (photoFile) {
@@ -97,7 +94,6 @@ export default function AddFriendPage() {
       router.push('/friends');
     } catch (error) {
       console.error("Error adding friend:", error);
-      // You could add error handling UI here
     }
   };
 

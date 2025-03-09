@@ -292,7 +292,7 @@ export default function CalendarPage() {
             item={selectedDate}
             itemType="date"
             onDelete={handleDeleteDate}
-            onUpdate={handleUpdateDate}
+            onUpdate={(item) => handleUpdateDate(item as ImportantDate)} // Add type assertion here
             onStatusChange={handleStatusChange}
             friendId={selectedDate.friendId}
           />

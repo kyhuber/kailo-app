@@ -49,7 +49,7 @@ export default function FriendDatesTab({ friendId, dates, setDates }: FriendDate
       <ManageableItemList<ImportantDate>
         title="Important Dates"
         description="Important dates related to your friend, such as travel dates, starting a new job, anniversaries, etc."
-        addItemButtonLabel="Add Date"
+        addItemButtonLabel="+ Add Date"
         items={dates}
         setItems={setDates}
         CardComponent={({ item }) => (

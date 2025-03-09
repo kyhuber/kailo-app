@@ -47,7 +47,7 @@ export default function FriendNotesTab({ friendId, notes, setNotes }: FriendNote
       <ManageableItemList<Note>
         title="General Notes"
         description="Notes are general reference information about friends that doesn't change frequently."
-        addItemButtonLabel="Add Note"
+        addItemButtonLabel="+ Add Note"
         items={notes}
         setItems={setNotes}
         CardComponent={({ item, onArchive, isArchived, onRestore }) => (

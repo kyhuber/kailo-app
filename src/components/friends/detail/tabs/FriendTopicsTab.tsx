@@ -41,7 +41,7 @@ export default function FriendTopicsTab({ friendId, topics, setTopics }: FriendT
       <ManageableItemList<Topic>
         title="Conversation Topics"
         description="Topics are conversation points to discuss with your friend during your next interaction."
-        addItemButtonLabel="Add Topic"
+        addItemButtonLabel="+ Add Topic"
         items={topics}
         setItems={setTopics}
         CardComponent={({ item, onArchive, onRestore, isArchived, onComplete, isCompleted, onReopen }) => (

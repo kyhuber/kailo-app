@@ -1,3 +1,4 @@
+// src/utils/friends_storage.ts
 import { FirebaseStorage } from './firebase_storage';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
@@ -24,14 +25,28 @@ class FriendFirebaseStorage extends FirebaseStorage<Friend> {
   async uploadPhoto(friendId: string, photoFile: File): Promise<string | null> {
     try {
       const userId = this.getUserId();
-      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/${crypto.randomUUID()}.jpg`);
       
+      // Generate a unique filename 
+      const filename = `${friendId}_${Date.now()}.jpg`;
+      const photoRef = ref(storage, `users/${userId}/friends/${filename}`);
+      
+      // Upload the file
       await uploadBytes(photoRef, photoFile);
       const photoUrl = await getDownloadURL(photoRef);
       
       // Update friend with photo URL
       const friend = await this.getById(friendId);
       if (friend) {
+        // Delete existing photo if it exists
+        if (friend.photoUrl) {
+          try {
+            const existingPhotoRef = ref(storage, friend.photoUrl);
+            await deleteObject(existingPhotoRef);
+          } catch (deleteError) {
+            console.warn("Could not delete existing photo:", deleteError);
+          }
+        }
+
         friend.photoUrl = photoUrl;
         await this.updateItem(friend);
       }
@@ -45,13 +60,13 @@ class FriendFirebaseStorage extends FirebaseStorage<Friend> {
 
   async deletePhoto(friendId: string): Promise<boolean> {
     try {
-      const userId = this.getUserId();
-      const photoRef = ref(storage, `users/${userId}/friends/${friendId}/photo.jpg`);
-      await deleteObject(photoRef);
-      
-      // Update friend to remove photo URL
       const friend = await this.getById(friendId);
-      if (friend) {
+      if (friend && friend.photoUrl) {
+        // Delete from storage
+        const photoRef = ref(storage, friend.photoUrl);
+        await deleteObject(photoRef);
+        
+        // Remove photoUrl from friend record
         delete friend.photoUrl;
         await this.updateItem(friend);
       }

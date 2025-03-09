@@ -84,7 +84,7 @@ export default function FriendsPage() {
               }}
               className="btn btn-primary"
             >
-              Add Friend
+              + Add Friend
             </button>
           </div>
   

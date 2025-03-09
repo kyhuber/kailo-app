@@ -1,8 +1,9 @@
 // src/components/friends/FriendModal.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import Image from 'next/image';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
@@ -19,6 +20,9 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
  const [contactInfo, setContactInfo] = useState('');
  const [tags, setTags] = useState('');
  const [user, setUser] = useState<User | null>(null);
+ const [photoFile, setPhotoFile] = useState<File | null>(null);
+ const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+ const fileInputRef = useRef<HTMLInputElement>(null);
 
  const colorOptions = useMemo(() => [
   { value: 'bg-teal-100', label: 'Teal' },
@@ -44,56 +48,161 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
    return () => unsubscribe();
  }, []);
 
- // Update form when initialData changes or modal opens
- useEffect(() => {
-   if (isOpen) {
-     setName(initialData?.name || '');
-     setContactInfo(initialData?.contactInfo || '');
-     setTags(initialData?.tags?.join(', ') || '');
-     setSelectedColor(initialData?.color || colorOptions[0].value);
-   }
- }, [isOpen, initialData, colorOptions]);
-
- const resetForm = () => {
-   setName('');
-   setContactInfo('');
-   setTags('');
-   setSelectedColor(colorOptions[0].value);
- };
-
- const handleSubmit = async (e: React.FormEvent) => {
-   e.preventDefault();
-
-   if (!name.trim() || !user) {
-     return;
-   }
-
-   // Clean up input values to avoid undefined
-   const cleanedContactInfo = contactInfo.trim() || undefined;
-   const tagArray = tags
-     ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
-     : [];
-
-   const newFriend: Friend = {
-     id: initialData?.id || uuidv4(),
-     name: name.trim(),
-     contactInfo: cleanedContactInfo,
-     tags: tagArray.length > 0 ? tagArray : [],
-     color: selectedColor,
-     createdAt: initialData?.createdAt || new Date().toISOString(),
-     updatedAt: new Date().toISOString(),
-     userId: user.uid, // Include the user ID
-   };
-
-   await FriendStorage.addItem(newFriend);
-   onFriendAdded();
-   resetForm();
-   onClose();
- };
+  // Update form when initialData changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || '');
+      setContactInfo(initialData?.contactInfo || '');
+      setTags(initialData?.tags?.join(', ') || '');
+      setSelectedColor(initialData?.color || colorOptions[0].value);
+      
+      // Set photo preview if existing photo URL
+      if (initialData?.photoUrl) {
+        setPhotoPreview(initialData.photoUrl);
+      } else {
+        setPhotoPreview(null);
+      }
+      setPhotoFile(null);
+    }
+  }, [isOpen, initialData, colorOptions]);
+ 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+ 
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+ 
+  const resetForm = () => {
+    setName('');
+    setContactInfo('');
+    setTags('');
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setSelectedColor(colorOptions[0].value);
+  };
+ 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+ 
+    if (!name.trim() || !user) {
+      return;
+    }
+ 
+    const cleanedContactInfo = contactInfo.trim() || undefined;
+    const tagArray = tags
+      ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      : [];
+ 
+    const newFriend: Friend = {
+      id: initialData?.id || uuidv4(),
+      name: name.trim(),
+      contactInfo: cleanedContactInfo,
+      tags: tagArray.length > 0 ? tagArray : [],
+      color: selectedColor,
+      createdAt: initialData?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userId: user.uid,
+      photoUrl: initialData?.photoUrl
+    };
+ 
+    try {
+      // First save the friend data
+      await FriendStorage.addItem(newFriend);
+ 
+      // Then upload photo if a new file is selected
+      if (photoFile) {
+        const uploadedPhotoUrl = await FriendStorage.uploadPhoto(newFriend.id, photoFile);
+        
+        // Update friend with the new photo URL if upload is successful
+        if (uploadedPhotoUrl) {
+          newFriend.photoUrl = uploadedPhotoUrl;
+          await FriendStorage.updateItem(newFriend);
+        }
+      } else if (photoPreview === null && initialData?.photoUrl) {
+        // If photo is explicitly removed, clear the photo URL
+        await FriendStorage.deletePhoto(newFriend.id);
+      }
+ 
+      onFriendAdded();
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('Error adding/updating friend:', error);
+    }
+  };
 
  return (
    <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Edit Friend" : "Add a New Friend"}>
      <form onSubmit={handleSubmit} className="space-y-4">
+       {/* Photo Upload Section */}
+       <div className="mb-4">
+         <label className="block text-sm font-medium mb-1">Profile Photo</label>
+         <div className="flex items-center space-x-4">
+           <div className="flex-shrink-0">
+             {photoPreview ? (
+               <div className="w-20 h-20 rounded-full overflow-hidden relative">
+                 <Image 
+                   src={photoPreview}
+                   alt="Profile preview"
+                   fill
+                   className="w-full h-full object-cover"
+                 />
+               </div>
+             ) : (
+               <div className={`w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold ${selectedColor}`}>
+                 {name ? name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'NA'}
+               </div>
+             )}
+           </div>
+           
+           <div className="flex-grow">
+             <input
+               ref={fileInputRef}
+               type="file"
+               id="photo"
+               accept="image/*"
+               className="hidden"
+               onChange={handlePhotoChange}
+             />
+             <div className="flex gap-2">
+               <button 
+                 type="button"
+                 onClick={() => fileInputRef.current?.click()}
+                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+               >
+                 {photoPreview ? 'Change Photo' : 'Add Photo'}
+               </button>
+               {photoPreview && (
+                 <button 
+                   type="button"
+                   onClick={handleRemovePhoto}
+                   className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                 >
+                   Remove
+                 </button>
+               )}
+             </div>
+             <p className="text-xs text-gray-500 mt-1">
+               Recommended: square photos up to 1MB
+             </p>
+           </div>
+         </div>
+       </div>
        <div>
          <label className="block text-sm font-medium mb-1" htmlFor="friend-name">
            Name <span className="text-rose-500">*</span>
