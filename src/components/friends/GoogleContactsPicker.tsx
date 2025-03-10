@@ -1,5 +1,6 @@
+// src/components/friends/GoogleContactsPicker.tsx
 import React, { useState, useEffect } from 'react';
-import { getAuth } from 'firebase/auth';
+import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 
 interface GoogleContact {
@@ -32,6 +33,7 @@ export default function GoogleContactsPicker({
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { getToken } = useAuth();
 
   // Fetch contacts when modal is opened
   const fetchContacts = async () => {
@@ -39,28 +41,46 @@ export default function GoogleContactsPicker({
       setLoading(true);
       setError(null);
       
-      const auth = getAuth();
-      const user = auth.currentUser;
-      
-      if (!user) {
-        throw new Error("User not authenticated");
+      if (!googleAccessToken) {
+        throw new Error("Google access token not available");
       }
       
-      // Get the ID token
-      const token = await user.getIdToken(true);
-      
-      // Fetch contacts from our API endpoint
-      const response = await fetch('/api/google-contacts', {
+      // Fetch contacts from our API endpoint using the Google token
+      const response = await fetch(`/api/google-contacts`, {
         headers: { 
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${googleAccessToken}`,
         }
       });
       
       if (!response.ok) {
         const errorData = await response.json();
+        
+        // If token expired, try to refresh it
+        if (response.status === 401 && errorData.error === 'Token expired') {
+          const newToken = await refreshGoogleToken();
+          if (newToken) {
+            // Retry with the new token
+            const retryResponse = await fetch(`/api/google-contacts`, {
+              headers: { 
+                'Authorization': `Bearer ${newToken}`,
+              }
+            });
+            
+            if (retryResponse.ok) {
+              const data = await retryResponse.json();
+              // Process data as before
+              // ...
+              return;
+            }
+          }
+          
+          throw new Error("Failed to refresh Google token. Please sign in again.");
+        }
+        
         throw new Error(errorData.error || 'Failed to fetch contacts');
       }
       
+      // Process successful response
       const data = await response.json();
       
       // Transform the Google Contacts data into a simpler format
