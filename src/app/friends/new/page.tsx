@@ -106,24 +106,32 @@ export default function AddFriendPage() {
       const parsedTags = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
 
       const friendId = uuidv4();
-      const newFriend: Friend = {
+      // Create a base friend object with required fields
+      const newFriend: Partial<Friend> = {
         id: friendId,
         name: cleanedName,
-        contactInfo: cleanedContactInfo,
-        tags: parsedTags.length > 0 ? parsedTags : undefined,
         color: selectedColor,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         userId: user.uid
       };
 
+      // Only add optional fields if they have values
+      if (cleanedContactInfo) {
+        newFriend.contactInfo = cleanedContactInfo;
+      }
+      
+      if (parsedTags.length > 0) {
+        newFriend.tags = parsedTags;
+      }
+      
       // If we have a photoUrl from Google, add it directly
       if (photoUrl) {
         newFriend.photoUrl = photoUrl;
       }
 
       // First save the basic friend info
-      await FriendStorage.addItem(newFriend);
+      await FriendStorage.addItem(newFriend as Friend);
 
       // Then upload photo if provided and no Google photo URL
       if (photoFile && !photoUrl) {
@@ -164,6 +172,7 @@ export default function AddFriendPage() {
                       width={80}
                       height={80}
                       className="w-full h-full object-cover"
+                      sizes="80px"
                     />
                   </div>
                 ) : (

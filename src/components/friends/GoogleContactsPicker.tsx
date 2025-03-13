@@ -33,7 +33,19 @@ export default function GoogleContactsPicker({
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { getToken } = useAuth();
+  
+  const { googleAccessToken, refreshGoogleToken } = useAuth();
+
+  // Process contacts data from Google API response
+  const processContactsData = (data: any): ContactPerson[] => {
+    return (data.connections || []).map((contact: GoogleContact) => ({
+      id: contact.resourceName,
+      name: contact.names?.[0]?.displayName || 'Unknown',
+      email: contact.emailAddresses?.[0]?.value,
+      phone: contact.phoneNumbers?.[0]?.value,
+      photoUrl: contact.photos?.[0]?.url
+    })).filter((contact: ContactPerson) => contact.name !== 'Unknown');
+  };
 
   // Fetch contacts when modal is opened
   const fetchContacts = async () => {
@@ -52,9 +64,9 @@ export default function GoogleContactsPicker({
         }
       });
       
+      const errorData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        
         // If token expired, try to refresh it
         if (response.status === 401 && errorData.error === 'Token expired') {
           const newToken = await refreshGoogleToken();
@@ -67,9 +79,13 @@ export default function GoogleContactsPicker({
             });
             
             if (retryResponse.ok) {
-              const data = await retryResponse.json();
-              // Process data as before
-              // ...
+              const retryData = await retryResponse.json();
+              const formattedContacts = processContactsData(retryData);
+              
+              // Sort contacts alphabetically by name
+              formattedContacts.sort((a, b) => a.name.localeCompare(b.name));
+              
+              setContacts(formattedContacts);
               return;
             }
           }
@@ -81,16 +97,7 @@ export default function GoogleContactsPicker({
       }
       
       // Process successful response
-      const data = await response.json();
-      
-      // Transform the Google Contacts data into a simpler format
-      const formattedContacts: ContactPerson[] = (data.connections || []).map((contact: GoogleContact) => ({
-        id: contact.resourceName,
-        name: contact.names?.[0]?.displayName || 'Unknown',
-        email: contact.emailAddresses?.[0]?.value,
-        phone: contact.phoneNumbers?.[0]?.value,
-        photoUrl: contact.photos?.[0]?.url
-      })).filter((contact: ContactPerson) => contact.name !== 'Unknown');
+      const formattedContacts = processContactsData(errorData);
       
       // Sort contacts alphabetically by name
       formattedContacts.sort((a, b) => a.name.localeCompare(b.name));

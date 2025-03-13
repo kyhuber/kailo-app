@@ -1,4 +1,4 @@
-// src/context/AuthContext.tsx (partial update)
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
   User, 
@@ -6,7 +6,8 @@ import {
   signInWithPopup, 
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  reauthenticateWithPopup
+  getIdToken,
+  onIdTokenChanged
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -16,10 +17,19 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<User | null>;
   signOut: () => Promise<void>;
   refreshGoogleToken: () => Promise<string | null>;
+  getToken: () => Promise<string | null>;
   googleAccessToken: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -40,14 +50,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
         const token = await getIdToken(user);
-        setIdToken(token);
-      } else {
-        setIdToken(null);
+        // You might want to do something with this token if needed
       }
     });
 
     return unsubscribe;
   }, []);
+
+  async function signInWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    
+    // Request access to Google Contacts and user profile
+    provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+    provider.addScope('profile');
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      
+      // Store Google access token
+      if (credential?.accessToken) {
+        setGoogleAccessToken(credential.accessToken);
+      }
+
+      return result.user;
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      return null;
+    }
+  }
 
   async function refreshGoogleToken() {
     if (!currentUser) return null;
@@ -57,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const provider = new GoogleAuthProvider();
       provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
       
-      const result = await reauthenticateWithPopup(currentUser, provider);
+      const result = await signInWithPopup(auth, provider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
       
       if (credential && credential.accessToken) {
@@ -70,34 +101,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error refreshing Google token:', error);
       return null;
     }
-  }
-
-  const value = {
-    currentUser,
-    loading,
-    signInWithGoogle,
-    signOut,
-    refreshGoogleToken,
-    googleAccessToken
-  };
-  
-  async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    
-    // Request access to Google Contacts
-    provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
-    
-    try {
-      const result = await signInWithPopup(auth, provider);
-      return result.user;
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      return null;
-    }
-  }
-
-  function signOut() {
-    return firebaseSignOut(auth);
   }
 
   async function getToken() {
@@ -113,12 +116,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const value = {
+  function signOut() {
+    setGoogleAccessToken(null);
+    return firebaseSignOut(auth);
+  }
+
+  const value: AuthContextType = {
     currentUser,
     loading,
     signInWithGoogle,
     signOut,
-    getToken
+    refreshGoogleToken,
+    getToken,
+    googleAccessToken
   };
 
   return (

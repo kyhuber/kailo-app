@@ -4,7 +4,7 @@ import { collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, 
 
 // Utility function to remove undefined values from an object
 const removeUndefinedValues = (obj: Record<string, unknown>) => {
-  return Object.fromEntries(Object.entries(obj).filter(([v]) => v !== undefined));
+  return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
 };
 
 // Base class for all Firebase storage
