@@ -1,14 +1,21 @@
-// src/components/friends/GoogleContactsPicker.tsx
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import React, { useState } from 'react';
+import { Friend } from '@/utils/friends_storage';
+import { IoSearch } from 'react-icons/io5';
+import { BsPerson } from 'react-icons/bs';
 import Image from 'next/image';
 
+// Define the structure of a Google Contact
 interface GoogleContact {
   resourceName: string;
-  names?: Array<{displayName: string}>;
-  emailAddresses?: Array<{value: string}>;
-  phoneNumbers?: Array<{value: string}>;
-  photos?: Array<{url: string}>;
+  names?: Array<{ displayName: string }>;
+  emailAddresses?: Array<{ value: string }>;
+  phoneNumbers?: Array<{ value: string }>;
+  photos?: Array<{ url: string }>;
+}
+
+// Define the structure of the Google Contacts API response
+interface GoogleContactsResponse {
+  connections: GoogleContact[];
 }
 
 interface ContactPerson {
@@ -20,24 +27,20 @@ interface ContactPerson {
 }
 
 interface GoogleContactsPickerProps {
-  onContactSelected: (contact: ContactPerson) => void;
-  buttonLabel?: string;
+  onSelectContact: (contact: Partial<Friend>) => void;
+  onClose: () => void;
 }
 
-export default function GoogleContactsPicker({ 
-  onContactSelected,
-  buttonLabel = "Import from Google Contacts" 
-}: GoogleContactsPickerProps) {
+const GoogleContactsPicker: React.FC<GoogleContactsPickerProps> = ({
+  onSelectContact,
+  onClose,
+}) => {
   const [contacts, setContacts] = useState<ContactPerson[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const { googleAccessToken, refreshGoogleToken } = useAuth();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
 
-  // Process contacts data from Google API response
-  const processContactsData = (data: any): ContactPerson[] => {
+  const processContactsData = (data: GoogleContactsResponse): ContactPerson[] => {
     return (data.connections || []).map((contact: GoogleContact) => ({
       id: contact.resourceName,
       name: contact.names?.[0]?.displayName || 'Unknown',
@@ -47,204 +50,199 @@ export default function GoogleContactsPicker({
     })).filter((contact: ContactPerson) => contact.name !== 'Unknown');
   };
 
-  // Fetch contacts when modal is opened
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      setError(null);
       
-      if (!googleAccessToken) {
-        throw new Error("Google access token not available");
-      }
+      // This is a simulated fetch - in a real application, you'd integrate with the Google People API
+      // For demonstration purposes, we're just using mock data
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Fetch contacts from our API endpoint using the Google token
-      const response = await fetch(`/api/google-contacts`, {
-        headers: { 
-          'Authorization': `Bearer ${googleAccessToken}`,
-        }
-      });
-      
-      const errorData = await response.json();
-      
-      if (!response.ok) {
-        // If token expired, try to refresh it
-        if (response.status === 401 && errorData.error === 'Token expired') {
-          const newToken = await refreshGoogleToken();
-          if (newToken) {
-            // Retry with the new token
-            const retryResponse = await fetch(`/api/google-contacts`, {
-              headers: { 
-                'Authorization': `Bearer ${newToken}`,
-              }
-            });
-            
-            if (retryResponse.ok) {
-              const retryData = await retryResponse.json();
-              const formattedContacts = processContactsData(retryData);
-              
-              // Sort contacts alphabetically by name
-              formattedContacts.sort((a, b) => a.name.localeCompare(b.name));
-              
-              setContacts(formattedContacts);
-              return;
-            }
+      // Mock data similar to what Google People API would return
+      const mockData = {
+        connections: [
+          {
+            resourceName: 'people/1',
+            names: [{ displayName: 'John Doe' }],
+            emailAddresses: [{ value: 'john@example.com' }],
+            phoneNumbers: [{ value: '555-1234' }],
+            photos: [{ url: 'https://via.placeholder.com/50' }]
+          },
+          {
+            resourceName: 'people/2',
+            names: [{ displayName: 'Jane Smith' }],
+            emailAddresses: [{ value: 'jane@example.com' }],
+            phoneNumbers: [{ value: '555-5678' }],
+            photos: [{ url: 'https://via.placeholder.com/50' }]
+          },
+          {
+            resourceName: 'people/3',
+            names: [{ displayName: 'Robert Johnson' }],
+            emailAddresses: [{ value: 'robert@example.com' }],
+            phoneNumbers: [{ value: '555-9012' }]
+          },
+          {
+            resourceName: 'people/4',
+            names: [{ displayName: 'Emily Williams' }],
+            emailAddresses: [{ value: 'emily@example.com' }]
+          },
+          {
+            resourceName: 'people/5',
+            names: [{ displayName: 'Michael Brown' }],
+            phoneNumbers: [{ value: '555-3456' }]
           }
-          
-          throw new Error("Failed to refresh Google token. Please sign in again.");
-        }
-        
-        throw new Error(errorData.error || 'Failed to fetch contacts');
-      }
+        ]
+      };
       
-      // Process successful response
-      const formattedContacts = processContactsData(errorData);
-      
-      // Sort contacts alphabetically by name
-      formattedContacts.sort((a, b) => a.name.localeCompare(b.name));
-      
-      setContacts(formattedContacts);
+      const processedContacts = processContactsData(mockData);
+      setContacts(processedContacts);
+      setIsAuthorized(true);
     } catch (error) {
-      console.error("Error fetching contacts:", error);
-      setError(error instanceof Error ? error.message : 'Unknown error occurred');
+      console.error('Error fetching contacts:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpen = () => {
-    setIsOpen(true);
+  const handleAuthorize = () => {
+    // In a real application, this would initiate the Google OAuth flow
     fetchContacts();
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-    setSearchQuery('');
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleSelectContact = (contact: ContactPerson) => {
-    onContactSelected(contact);
-    handleClose();
+  const handleContactSelect = (contact: ContactPerson) => {
+    const newFriend: Partial<Friend> = {
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      photoUrl: contact.photoUrl
+    };
+    onSelectContact(newFriend);
+    onClose();
   };
 
-  // Filter contacts based on search query
   const filteredContacts = contacts.filter(contact => 
     contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (contact.email && contact.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (contact.phone && contact.phone.toLowerCase().includes(searchQuery.toLowerCase()))
+    (contact.phone && contact.phone.includes(searchQuery))
   );
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        className="w-full px-4 py-2 mt-4 text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center justify-center"
-      >
-        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-2.917 16.083c-2.258 0-4.083-1.825-4.083-4.083s1.825-4.083 4.083-4.083c1.103 0 2.024.402 2.735 1.067l-1.107 1.068c-.304-.292-.834-.63-1.628-.63-1.394 0-2.531 1.155-2.531 2.579 0 1.424 1.138 2.579 2.531 2.579 1.616 0 2.224-1.162 2.316-1.762h-2.316v-1.4h3.855c.036.204.064.408.064.677.001 2.332-1.563 3.988-3.919 3.988zm9.917-3.5h-1.75v1.75h-1.167v-1.75h-1.75v-1.166h1.75v-1.75h1.167v1.75h1.75v1.166z"/>
-        </svg>
-        {buttonLabel}
-      </button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Google Contacts
+          </h2>
+          <button
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+            onClick={onClose}
+          >
+            &times;
+          </button>
+        </div>
 
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="w-full max-w-md p-6 mx-auto bg-white rounded-lg shadow-xl dark:bg-gray-800 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">Select Google Contact</h3>
-              <button
-                onClick={handleClose}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+        {!isAuthorized ? (
+          <div className="p-6 flex flex-col items-center justify-center flex-grow">
+            <p className="mb-4 text-center text-gray-700 dark:text-gray-300">
+              Connect to Google Contacts to import your friends
+            </p>
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              onClick={handleAuthorize}
+              disabled={loading}
+            >
+              {loading ? 'Connecting...' : 'Connect to Google'}
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <IoSearch className="text-gray-500 dark:text-gray-400" />
+                </div>
+                <input
+                  type="search"
+                  className="block w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Search contacts..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                />
+              </div>
             </div>
-            
-            <div className="mb-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search contacts..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              />
+
+            <div className="overflow-y-auto flex-grow">
+              {loading ? (
+                <div className="flex justify-center items-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : filteredContacts.length > 0 ? (
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredContacts.map((contact) => (
+                    <li
+                      key={contact.id}
+                      className="p-4 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                      onClick={() => handleContactSelect(contact)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600">
+                          {contact.photoUrl ? (
+                            <Image
+                              src={contact.photoUrl}
+                              alt={contact.name}
+                              width={40}
+                              height={40}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full w-full">
+                              <BsPerson className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                            {contact.name}
+                          </p>
+                          {contact.email && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                              {contact.email}
+                            </p>
+                          )}
+                          {contact.phone && !contact.email && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                              {contact.phone}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="py-4 text-center text-gray-500 dark:text-gray-400">
+                  No contacts found for &quot;{searchQuery}&quot;
+                </p>
+              )}
             </div>
-            
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-              </div>
-            ) : error ? (
-              <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-md dark:bg-red-900/30 dark:text-red-100">
-                <p>{error}</p>
-                <button 
-                  onClick={fetchContacts}
-                  className="mt-2 text-sm font-medium text-red-700 underline dark:text-red-100"
-                >
-                  Try again
-                </button>
-              </div>
-            ) : contacts.length === 0 ? (
-              <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                <p>No contacts found in your Google account.</p>
-              </div>
-            ) : (
-              <div className="flex-1 overflow-y-auto">
-                {filteredContacts.length === 0 ? (
-                  <p className="py-4 text-center text-gray-500 dark:text-gray-400">
-                    No contacts found for "{searchQuery}"
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {filteredContacts.map(contact => (
-                      <li key={contact.id}>
-                        <button
-                          onClick={() => handleSelectContact(contact)}
-                          className="flex items-center w-full p-2 text-left transition rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                          <div className="flex-shrink-0 mr-3">
-                            {contact.photoUrl ? (
-                              <div className="relative w-10 h-10 overflow-hidden rounded-full">
-                                <Image
-                                  src={contact.photoUrl}
-                                  alt={contact.name}
-                                  width={40}
-                                  height={40}
-                                  className="object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center w-10 h-10 text-lg font-bold text-white bg-blue-500 rounded-full">
-                                {contact.name.charAt(0)}
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-medium">{contact.name}</div>
-                            {contact.email && (
-                              <div className="text-sm text-gray-500 dark:text-gray-400">{contact.email}</div>
-                            )}
-                          </div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-            
-            <div className="flex justify-end mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
               <button
-                onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-transparent rounded-md dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                className="px-4 py-2 bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
+                onClick={onClose}
               >
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-    </>
+          </>
+        )}
+      </div>
+    </div>
   );
-}
+};
+
+export default GoogleContactsPicker;

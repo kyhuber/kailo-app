@@ -27,6 +27,7 @@ interface FriendModalProps {
 export default function FriendModal({ isOpen, onClose, onFriendAdded, initialData }: FriendModalProps) {
   const [name, setName] = useState('');
   const [contactInfo, setContactInfo] = useState('');
+  const [contactDetails, setContactDetails] = useState<{email?: string, phone?: string}>({});
   const [tags, setTags] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -66,6 +67,9 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
       setContactInfo(initialData?.contactInfo || '');
       setTags(initialData?.tags?.join(', ') || '');
       setSelectedColor(initialData?.color || colorOptions[0].value);
+      
+      // Set contact details if available
+      setContactDetails(initialData?.contactDetails || {});
       
       // If the friend has a photoUrl, set it
       if (initialData?.photoUrl) {
@@ -111,6 +115,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
   const resetForm = () => {
     setName('');
     setContactInfo('');
+    setContactDetails({});
     setTags('');
     setSelectedColor(colorOptions[0].value);
     setPhotoFile(null);
@@ -123,11 +128,18 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
 
   const handleContactSelected = (contact: ContactPerson) => {
     setName(contact.name);
-    if (contact.email) {
-      setContactInfo(contact.email);
-    } else if (contact.phone) {
-      setContactInfo(contact.phone);
+    
+    // Store structured contact info
+    if (contact.email || contact.phone) {
+      const displayContact = [contact.email, contact.phone].filter(Boolean).join(' | ');
+      setContactInfo(displayContact); // For display in the form
     }
+    
+    // Store contact details for submission
+    setContactDetails({
+      email: contact.email,
+      phone: contact.phone
+    });
     
     if (contact.photoUrl) {
       setPhotoUrl(contact.photoUrl);
@@ -163,6 +175,14 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
         updatedAt: new Date().toISOString(),
         userId: user.uid,
       };
+
+      // Add contact details if they exist
+      if (contactDetails.email || contactDetails.phone) {
+        newFriend.contactDetails = {
+          email: contactDetails.email,
+          phone: contactDetails.phone
+        };
+      }
 
       // If we have an existing photo URL and no new file, keep it
       if ((initialData?.photoUrl || photoUrl) && !photoFile) {

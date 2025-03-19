@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
-        const token = await getIdToken(user);
+        await getIdToken(user);
         // You might want to do something with this token if needed
       }
     });

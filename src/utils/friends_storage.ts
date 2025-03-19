@@ -7,6 +7,10 @@ export interface Friend {
   id: string;
   name: string;
   contactInfo?: string;
+  contactDetails?: {
+    email?: string;
+    phone?: string;
+  };
   tags?: string[];
   color?: string;
   createdAt: string;
