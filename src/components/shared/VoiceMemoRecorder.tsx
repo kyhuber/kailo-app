@@ -1,3 +1,4 @@
+// src/components/shared/VoiceMemoRecorder.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { processVoiceInput, ProcessedItem, ProcessedVoiceResult } from '@/utils/voice_processing';
 import { FriendStorage, Friend } from '@/utils/friends_storage';
@@ -7,16 +8,27 @@ import { TopicStorage } from '@/utils/topics_storage';
 import { DateStorage } from '@/utils/dates_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/context/AuthContext';
-import { AiOutlineMic, AiOutlineStop, AiOutlineLoading } from 'react-icons/ai';
+import { FaMicrophone, FaStop } from 'react-icons/fa';
+import { AiOutlineLoading } from 'react-icons/ai';
 
 // Declare SpeechRecognition types for TypeScript
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
 }
 
-interface Window {
-  SpeechRecognition: any;
-  webkitSpeechRecognition: any;
+// Custom types for speech recognition
+interface SpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
 }
 
 interface VoiceMemoRecorderProps {
@@ -33,7 +45,7 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
   const [availableFriends, setAvailableFriends] = useState<Friend[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [processedResult, setProcessedResult] = useState<ProcessedVoiceResult | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const { currentUser } = useAuth();
 
   // Load available friends when component mounts
@@ -53,14 +65,20 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
   // Set up and clean up speech recognition
   useEffect(() => {
     // Initialize speech recognition
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionConstructor = (window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    }).SpeechRecognition || (window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    }).webkitSpeechRecognition;
     
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionConstructor) {
       setError('Speech recognition is not supported in your browser.');
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionConstructor();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
@@ -72,7 +90,7 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
       setTranscript(currentTranscript);
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       setError(`Speech recognition error: ${event.error}`);
       setIsRecording(false);
     };
@@ -254,20 +272,20 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
         await TopicStorage.addItem(topic);
         break;
         
-      case 'date':
-        const date = {
-          id: uuidv4(),
-          friendId,
-          title: item.title || 'Important Date',
-          date: item.date || now,
-          type: item.recurring ? 'Recurring' : 'One-time' as const,
-          description: item.content,
-          createdAt: now,
-          updatedAt: now,
-          userId
-        };
-        await DateStorage.addItem(date);
-        break;
+        case 'date':
+          const date = {
+            id: uuidv4(),
+            friendId,
+            title: item.title || 'Important Date',
+            date: item.date || now,
+            type: item.recurring ? 'Recurring' as const : 'One-time' as const,
+            description: item.content,
+            createdAt: now,
+            updatedAt: now,
+            userId
+          };
+          await DateStorage.addItem(date);
+          break;
     }
   };
 
@@ -386,11 +404,11 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
         >
           {isRecording ? (
             <>
-              <AiOutlineStop className="h-5 w-5" /> Stop Recording
+              <FaMicrophone className="h-5 w-5" /> Stop Recording
             </>
           ) : (
             <>
-              <AiOutlineMic className="h-5 w-5" /> Start Voice Memo
+              <FaStop className="h-5 w-5" /> Start Voice Memo
             </>
           )}
         </button>

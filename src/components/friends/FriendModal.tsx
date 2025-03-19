@@ -9,6 +9,7 @@ import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import GoogleContactsPicker from './GoogleContactsPicker';
 
+// This interface is used in handleContactSelected
 interface ContactPerson {
   id: string;
   name: string;
@@ -165,7 +166,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
         : [];
 
       const friendId = initialData?.id || uuidv4();
-      let newFriend: Friend = {
+      const newFriend: Friend = {
         id: friendId,
         name: name.trim(),
         contactInfo: cleanedContactInfo,
@@ -213,8 +214,10 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
       {!initialData && (
         <div className="mb-4">
           <GoogleContactsPicker 
-            onContactSelected={handleContactSelected}
-            buttonLabel="Import from Google Contacts"
+            onSelectContact={(contact) => {
+              handleContactSelected(contact as unknown as ContactPerson); 
+            }}
+            onClose={() => {}} 
           />
         </div>
       )}
