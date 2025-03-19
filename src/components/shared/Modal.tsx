@@ -1,3 +1,5 @@
+// src/components/shared/Modal.tsx - Updated for better mobile readability
+
 'use client';
 
 import React, { useEffect, useRef } from 'react';
@@ -73,7 +75,7 @@ const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
       <div 
         ref={modalRef} 
         className={`${sizeClasses[size]} w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl transform transition-all`}
