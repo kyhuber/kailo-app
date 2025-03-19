@@ -8,7 +8,6 @@ import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import GoogleContactsPicker from '@/components/friends/GoogleContactsPicker';
 
 interface ContactPerson {
   id: string;
@@ -78,21 +77,6 @@ export default function AddFriendPage() {
     }
   };
 
-  const handleContactSelected = (contact: ContactPerson) => {
-    setName(contact.name);
-    if (contact.email) {
-      setContactInfo(contact.email);
-    } else if (contact.phone) {
-      setContactInfo(contact.phone);
-    }
-    
-    if (contact.photoUrl) {
-      setPhotoUrl(contact.photoUrl);
-      setPhotoPreview(contact.photoUrl);
-      setPhotoFile(null);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !user || isSubmitting) return;
@@ -151,12 +135,6 @@ export default function AddFriendPage() {
     <ProtectedRoute>
       <div className="container mx-auto p-4 max-w-md">
         <h1 className="text-2xl font-bold mb-6">Add a New Friend</h1>
-        
-        {/* Google Contacts Import Button */}
-        <GoogleContactsPicker 
-          onContactSelected={handleContactSelected}
-          buttonLabel="Import from Google Contacts"
-        />
         
         <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-4 mt-4">
           {/* Photo Upload Section */}

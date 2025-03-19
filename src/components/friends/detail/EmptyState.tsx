@@ -3,8 +3,8 @@ import React from 'react';
 
 interface EmptyStateProps {
   message: string;
-  actionLabel: string;
-  onAction: () => void;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export default function EmptyState({ message, actionLabel, onAction }: EmptyStateProps) {

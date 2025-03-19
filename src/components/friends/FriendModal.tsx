@@ -7,16 +7,6 @@ import Image from 'next/image';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import GoogleContactsPicker from './GoogleContactsPicker';
-
-// This interface is used in handleContactSelected
-interface ContactPerson {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  photoUrl?: string;
-}
 
 interface FriendModalProps {
   isOpen: boolean;
@@ -127,28 +117,6 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
     }
   };
 
-  const handleContactSelected = (contact: ContactPerson) => {
-    setName(contact.name);
-    
-    // Store structured contact info
-    if (contact.email || contact.phone) {
-      const displayContact = [contact.email, contact.phone].filter(Boolean).join(' | ');
-      setContactInfo(displayContact); // For display in the form
-    }
-    
-    // Store contact details for submission
-    setContactDetails({
-      email: contact.email,
-      phone: contact.phone
-    });
-    
-    if (contact.photoUrl) {
-      setPhotoUrl(contact.photoUrl);
-      setPhotoPreview(contact.photoUrl);
-      setPhotoFile(null);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -211,16 +179,6 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Edit Friend" : "Add a New Friend"}>
-      {!initialData && (
-        <div className="mb-4">
-          <GoogleContactsPicker 
-            onSelectContact={(contact) => {
-              handleContactSelected(contact as unknown as ContactPerson); 
-            }}
-            onClose={() => {}} 
-          />
-        </div>
-      )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Photo Upload Section */}

@@ -108,8 +108,6 @@ export default function FriendOverviewTab({
         ) : (
           <EmptyState
             message="No notes yet"
-            actionLabel="Add a note +"
-            onAction={() => onOpenModal('note')}
           />
         )}
       </div>
@@ -146,8 +144,6 @@ export default function FriendOverviewTab({
         ) : (
           <EmptyState
             message="No conversation topics yet"
-            actionLabel="Add a topic +"
-            onAction={() => onOpenModal('topic')}
           />
         )}
       </div>
@@ -198,8 +194,6 @@ export default function FriendOverviewTab({
         ) : (
           <EmptyState
             message="No pending tasks"
-            actionLabel="Add a task +"
-            onAction={() => onOpenModal('task')}
           />
         )}
       </div>
@@ -244,8 +238,6 @@ export default function FriendOverviewTab({
         ) : (
           <EmptyState
             message="No upcoming dates"
-            actionLabel="Add a date +"
-            onAction={() => onOpenModal('date')}
           />
         )}
       </div>

@@ -97,16 +97,6 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
 
     recognitionRef.current = recognition;
 
-    // Clean up
-    return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          // Ignore errors when stopping inactive recognition
-        }
-      }
-    };
   }, []);
 
   // Start recording
