@@ -1,5 +1,6 @@
+// src/components/ui/buttons/VoiceMemoButton.tsx
 import React, { useState } from 'react';
-import { AiOutlineMic } from 'react-icons/ai';
+import { MdMic } from 'react-icons/md'; // Using Material Design icons instead
 import VoiceMemoModal from '@/components/shared/VoiceMemoModal';
 import { ProcessedVoiceResult } from '@/utils/voice_processing';
 
@@ -50,7 +51,7 @@ export default function VoiceMemoButton({
           className={`fixed ${positionClasses[position]} ${variantClasses[variant]} p-4 rounded-full z-20 flex items-center justify-center`}
           aria-label="Record voice memo"
         >
-          <AiOutlineMic className="h-6 w-6" />
+          <MdMic className="h-6 w-6" />
         </button>
         
         <VoiceMemoModal
@@ -69,7 +70,7 @@ export default function VoiceMemoButton({
         onClick={handleOpenModal}
         className={`px-4 py-2 rounded-md flex items-center gap-2 ${variantClasses[variant]}`}
       >
-        <AiOutlineMic className="h-5 w-5" />
+        <MdMic className="h-5 w-5" />
         {label}
       </button>
       

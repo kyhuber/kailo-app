@@ -2,6 +2,10 @@
 import { FirebaseStorage } from './firebase_storage';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
+import { TaskStorage } from './tasks_storage';
+import { NoteStorage } from './notes_storage';
+import { TopicStorage } from './topics_storage';
+import { DateStorage } from './dates_storage';
 
 export interface Friend {
   id: string;
@@ -59,6 +63,47 @@ class FriendFirebaseStorage extends FirebaseStorage<Friend> {
     } catch (error) {
       console.error("Error uploading photo:", error);
       return null;
+    }
+  }
+
+  async deleteFriendWithRecords(friendId: string): Promise<boolean> {
+    try {
+      // First, delete all associated records
+      
+      // Delete tasks
+      const tasks = await TaskStorage.getTasksByFriend(friendId);
+      for (const task of tasks) {
+        await TaskStorage.deleteItem(task.id);
+      }
+      
+      // Delete notes
+      const notes = await NoteStorage.getNotesByFriend(friendId);
+      for (const note of notes) {
+        await NoteStorage.deleteItem(note.id);
+      }
+      
+      // Delete topics
+      const topics = await TopicStorage.getTopicsByFriend(friendId);
+      for (const topic of topics) {
+        await TopicStorage.deleteItem(topic.id);
+      }
+      
+      // Delete dates
+      const dates = await DateStorage.getDatesByFriend(friendId);
+      for (const date of dates) {
+        await DateStorage.deleteItem(date.id);
+      }
+      
+      // Delete the photo if it exists
+      await this.deletePhoto(friendId);
+      
+      // Finally, delete the friend
+      await this.deleteItem(friendId);
+      
+      return true;
+    } catch (error) {
+      console.error("Error in cascading delete:", error);
+      throw error;
     }
   }
 

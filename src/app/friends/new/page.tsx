@@ -9,14 +9,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-interface ContactPerson {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  photoUrl?: string;
-}
-
 export default function AddFriendPage() {
   const [name, setName] = useState('');
   const [contactInfo, setContactInfo] = useState('');
@@ -183,13 +175,10 @@ export default function AddFriendPage() {
                       onClick={handleRemovePhoto}
                       className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                     >
-                      Remove
+                      Remove Photo
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {photoUrl ? 'Using photo from Google Contacts' : 'Recommended: square photos up to 1MB'}
-                </p>
               </div>
             </div>
           </div>

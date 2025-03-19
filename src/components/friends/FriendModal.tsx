@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Image from 'next/image';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
+import ConfirmModal from '@/components/shared/ConfirmModal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 interface FriendModalProps {
@@ -25,6 +26,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colorOptions = useMemo(() => [
@@ -177,6 +179,22 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
     }
   };
 
+  const handleDeleteFriend = async () => {
+    if (!initialData?.id || !user) return;
+    
+    try {
+      setIsSubmitting(true);
+      await FriendStorage.deleteFriendWithRecords(initialData.id);
+      onFriendAdded(); // This will refresh the friends list
+      onClose();
+    } catch (error) {
+      console.error("Error deleting friend:", error);
+      alert("There was an error deleting your friend. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Edit Friend" : "Add a New Friend"}>
       
@@ -226,13 +244,10 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
                     onClick={handleRemovePhoto}
                     className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
                   >
-                    Remove
+                    Remove Photo
                   </button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {photoUrl ? 'Using photo from Google Contacts' : 'Recommended: square photos up to 1MB'}
-              </p>
             </div>
           </div>
         </div>
@@ -334,6 +349,43 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
             }
           </button>
         </div>
+
+        {initialData?.id && (
+          <>
+            <div className="border-t border-gray-200 dark:border-gray-700 my-4 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className="h-5 w-5" 
+                  viewBox="0 0 20 20" 
+                  fill="currentColor"
+                >
+                  <path 
+                    fillRule="evenodd" 
+                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" 
+                    clipRule="evenodd" 
+                  />
+                </svg>
+                Delete Friend
+              </button>
+            </div>
+            
+            <ConfirmModal
+              isOpen={isDeleteModalOpen}
+              onClose={() => setIsDeleteModalOpen(false)}
+              onConfirm={handleDeleteFriend}
+              title="Delete Friend"
+              message={`Are you sure you want to delete ${name}? This will also delete all associated notes, tasks, topics, and dates.`}
+              confirmButtonText="Delete"
+              variant="danger"
+            />
+          </>
+        )}
+
       </form>
     </Modal>
   );
