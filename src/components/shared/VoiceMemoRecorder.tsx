@@ -102,7 +102,7 @@ export default function VoiceMemoRecorder({ onClose, onProcessingComplete }: Voi
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
-        } catch (e) {
+        } catch {
           // Ignore errors when stopping inactive recognition
         }
       }

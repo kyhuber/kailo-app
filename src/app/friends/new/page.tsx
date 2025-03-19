@@ -8,6 +8,7 @@ import { FriendStorage, Friend } from '@/utils/friends_storage';
 import { v4 as uuidv4 } from 'uuid';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { FEATURES } from '@/config/features';
 import GoogleContactsPicker from '@/components/friends/GoogleContactsPicker';
 
 interface ContactPerson {
@@ -151,6 +152,15 @@ export default function AddFriendPage() {
     <ProtectedRoute>
       <div className="container mx-auto p-4 max-w-md">
         <h1 className="text-2xl font-bold mb-6">Add a New Friend</h1>
+
+        {FEATURES.GOOGLE_CONTACTS_INTEGRATION && (
+          <div className="mb-4">
+            <GoogleContactsPicker 
+              onSelectContact={() => {}} 
+              onClose={() => {}} 
+            />
+          </div>
+        )}
         
         {/* Google Contacts Import Button */}
         <GoogleContactsPicker 

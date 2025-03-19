@@ -3,6 +3,7 @@ import { Friend } from '@/utils/friends_storage';
 import { IoSearch } from 'react-icons/io5';
 import { BsPerson } from 'react-icons/bs';
 import Image from 'next/image';
+import { FEATURES } from '@/config/features'; 
 
 // Define the structure of a Google Contact
 interface GoogleContact {
@@ -26,14 +27,16 @@ interface ContactPerson {
   photoUrl?: string;
 }
 
-interface GoogleContactsPickerProps {
+export interface GoogleContactsPickerProps {
   onSelectContact: (contact: Partial<Friend>) => void;
   onClose: () => void;
+  buttonLabel?: string;
 }
 
 const GoogleContactsPicker: React.FC<GoogleContactsPickerProps> = ({
   onSelectContact,
   onClose,
+  buttonLabel = 'Import from Google Contacts'
 }) => {
   const [contacts, setContacts] = useState<ContactPerson[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -129,6 +132,17 @@ const GoogleContactsPicker: React.FC<GoogleContactsPickerProps> = ({
     (contact.email && contact.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (contact.phone && contact.phone.includes(searchQuery))
   );
+
+  if (!FEATURES.GOOGLE_CONTACTS_INTEGRATION) {
+    return (
+      <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400">
+        <p className="text-yellow-700">
+          Google Contacts integration is currently disabled. 
+          This feature will be re-enabled in a future update.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

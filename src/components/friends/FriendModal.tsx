@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Friend, FriendStorage } from '@/utils/friends_storage';
 import Modal from '@/components/shared/Modal';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { FEATURES } from '@/config/features';
 import GoogleContactsPicker from './GoogleContactsPicker';
 
 // This interface is used in handleContactSelected
@@ -211,7 +212,7 @@ export default function FriendModal({ isOpen, onClose, onFriendAdded, initialDat
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={initialData?.id ? "Edit Friend" : "Add a New Friend"}>
-      {!initialData && (
+      {!initialData && FEATURES.GOOGLE_CONTACTS_INTEGRATION && (
         <div className="mb-4">
           <GoogleContactsPicker 
             onSelectContact={(contact) => {
